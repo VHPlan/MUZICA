@@ -38,6 +38,26 @@ export default function ArtistStudio() {
     }
   };
 
+  const handleDownload = async () => {
+    try {
+      // Forțează descărcarea directă a fișierului
+      const response = await fetch(audioUrl);
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      const ext = audioUrl.includes('.mp4') ? 'mp4' : 'mp3';
+      link.download = `${artistName ? artistName.replace(/\s+/g, '_') : 'Artist'}_Hit.${ext}`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
+    } catch (error) {
+      // Fallback
+      window.open(audioUrl, '_blank');
+    }
+  };
+
   const handleGenerate = async () => {
     const apiKey = localStorage.getItem('piapi_key');
     if (!apiKey) {
@@ -136,9 +156,9 @@ export default function ArtistStudio() {
           <div style={{ marginTop: '20px', padding: '16px', background: 'rgba(0,0,0,0.3)', borderRadius: '12px', border: '1px solid var(--primary)' }}>
             <h3 style={{ marginBottom: '12px', color: 'var(--primary)' }}>Hit-ul tău este gata! 🎧</h3>
             <audio controls src={audioUrl} style={{ width: '100%' }}></audio>
-            <a href={audioUrl} target="_blank" rel="noreferrer" style={{ display: 'block', textAlign: 'center', marginTop: '12px', color: 'var(--secondary)', textDecoration: 'none' }}>
-              ⬇️ Descarcă Melodia (Click dreapta -> Save Video As)
-            </a>
+            <button onClick={handleDownload} className="btn-primary" style={{ width: '100%', marginTop: '12px', background: 'linear-gradient(135deg, #00f5d4 0%, #00b4d8 100%)', color: '#0b0f19' }}>
+              ⬇️ Descarcă (MP3 / MP4)
+            </button>
           </div>
         )}
       </div>
