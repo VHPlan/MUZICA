@@ -79,8 +79,8 @@ export const buildPrompt = (settings, provider = 'suno') => {
     genreDirectives = "Authentic Romanian lăutărească music, live taraf feeling, acoustic instruments, violin, accordion, cimbalom (țambal), traditional acoustic rhythm.";
     genreTags = "lautareasca, taraf, gypsy folk, live acoustic, cimbalom";
   } else if (genre === 'Țigănești') {
-    genreDirectives = "Authentic fiery Gypsy folk music (muzică țigănească autentică de joc), extreme acoustic virtuosity, very fast tempo, highly improvised violin and accordion solos, dynamic rhythm, raw traditional Roma culture vibe.";
-    genreTags = "gypsy folk, muzica tiganeasca, fast acoustic, virtuoso violin, roma music, energetic";
+    genreDirectives = "Authentic Romanian gypsy taraf music, fast sârba dance rhythm, extreme acoustic virtuosity, highly improvised acoustic violin and accordion melisma, rhythmic cimbalom (țambal), upright bass, raw traditional Roma culture vibe, highly energetic taraf style.";
+    genreTags = "taraf, gypsy folk, fast sarba rhythm, accordion, cimbalom, violin melisma";
   } else {
     genreDirectives = `Romanian ${genre} style, balkan oriental pop.`;
     genreTags = "balkan, oriental, pop";
