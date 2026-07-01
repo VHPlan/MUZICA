@@ -81,10 +81,11 @@ export default function ArtistStudio() {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-          model: "udio",
-          task_type: "generate",
+          model: "music-u",
+          task_type: "generate_music",
           input: {
-            prompt: `Gen: ${genre}. ${prompt}`,
+            gpt_description_prompt: `Gen: ${genre}. ${prompt}`,
+            lyrics_type: "generate"
           }
         })
       });
