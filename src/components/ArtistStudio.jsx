@@ -17,12 +17,15 @@ export default function ArtistStudio() {
       const data = rawData.data || rawData; // PiAPI wraps in "data" object
 
       if (data.status === 'completed') {
-        const songUrl = data.audio_url || (data.clips && data.clips[0]?.audio_url);
+        const res = data.result || data.output || {};
+        const songUrl = data.audio_url || res.audio_url || (data.clips && data.clips[0]?.audio_url) || (res.clips && res.clips[0]?.audio_url) || data.url || res.url;
+        
         if (songUrl) {
           setAudioUrl(songUrl);
           setStatus('Melodia este gata! O poți asculta mai jos.');
         } else {
-          setStatus('Eroare: API-ul nu a returnat link-ul melodiei.');
+          setStatus(`Link lipsă: ${JSON.stringify(data).substring(0, 250)}`);
+          console.error("DEBUG DATA:", data);
         }
         setLoading(false);
       } else if (data.status === 'failed') {
