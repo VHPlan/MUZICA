@@ -144,7 +144,7 @@ export const generateMusicTask = async (settings, provider, apiKey) => {
     model = "music-s";
     payload = {
       model: model,
-      task_type: "generate",
+      task_type: "generate_music",
       input: {
         prompt: promptData.prompt ? promptData.prompt : (promptData || ""),
         tags: promptData.tags ? sanitizeString(promptData.tags) : "",
@@ -157,7 +157,7 @@ export const generateMusicTask = async (settings, provider, apiKey) => {
     model = "music-u";
     payload = {
       model: model,
-      task_type: "generate",
+      task_type: "generate_music",
       input: {
         gpt_description_prompt: promptData.prompt || promptData,
         negative_tags: GLOBAL_NEGATIVE,
