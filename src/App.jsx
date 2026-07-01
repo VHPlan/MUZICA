@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import ArtistStudio from './components/ArtistStudio';
 import Settings from './components/Settings';
 import './App.css'; 
@@ -7,40 +8,82 @@ import { generateMusicTask } from './services/AIProvider';
 
 function HeroSection({ onStart }) {
   const PRESETS = [
-    { id: 'tiktok_club', icon: '🔥', label: 'Tarabană & Bass TikTok' },
-    { id: 'manele_club', icon: '💸', label: 'Manele de Club' },
-    { id: 'nunta', icon: '💍', label: 'Nuntă Românească' },
-    { id: 'lautareasca', icon: '🎻', label: 'Lăutărească Live' }
+    { id: 'tiktok_club', icon: '🔥', label: 'Tarabană & Bass TikTok', desc: 'Ritm dominant și bass profund' },
+    { id: 'manele_club', icon: '💸', label: 'Manele de Club', desc: 'Party oriental pentru cluburi' },
+    { id: 'nunta', icon: '💍', label: 'Nuntă Românească', desc: 'Atmosferă clasică de nuntă' },
+    { id: 'lautareasca', icon: '🎻', label: 'Lăutărească Live', desc: 'Taraf autentic live' }
   ];
 
   return (
-    <div style={{ textAlign: 'center', padding: '80px 20px', minHeight: '70vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', animation: 'fadeIn 0.6s ease-out' }}>
-      <div style={{ padding: '8px 16px', background: 'rgba(139, 92, 246, 0.1)', border: '1px solid rgba(139, 92, 246, 0.2)', borderRadius: '100px', color: 'var(--primary)', fontWeight: 600, fontSize: '0.9rem', marginBottom: '32px', display: 'inline-block' }}>
-        ✨ V2.0 - Acum cu Smart Prompt Tuning
-      </div>
-      <h1 className="glow-text text-gradient" style={{ fontSize: '4.5rem', fontWeight: 800, margin: '0 0 24px 0', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
-        Studio AI pentru<br/>Manele Românești
-      </h1>
-      <p style={{ fontSize: '1.25rem', color: 'var(--text-muted)', marginBottom: '48px', maxWidth: '650px', lineHeight: 1.6 }}>
-        Generează manele, lăutărească și instrumentale orientale cu tarabană și bass, folosind cel mai avansat motor AI.
-      </p>
+    <motion.div 
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.8, ease: "easeOut" }}
+      style={{ padding: '80px 20px', minHeight: '70vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}
+    >
+      <motion.div 
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        transition={{ delay: 0.2 }}
+        style={{ padding: '8px 16px', background: 'var(--glow-gold)', border: '1px solid var(--border-gold)', borderRadius: '100px', color: 'var(--primary)', fontWeight: 500, fontSize: '0.9rem', marginBottom: '32px' }}
+      >
+        ✨ Premium Studio Edition
+      </motion.div>
       
-      <button onClick={onStart} className="btn-primary" style={{ fontSize: '1.2rem', padding: '18px 48px', display: 'flex', alignItems: 'center', gap: '12px', margin: '0 auto 60px auto', borderRadius: '16px' }}>
-        <Zap size={24} /> Creează un hit
-      </button>
+      <motion.h1 
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.3 }}
+        style={{ fontSize: '4.5rem', fontWeight: 800, margin: '0 0 24px 0', letterSpacing: '-0.03em', lineHeight: 1.1, textAlign: 'center' }}
+      >
+        Studio AI pentru<br/><span className="text-gradient">Manele Românești</span>
+      </motion.h1>
+      
+      <motion.p 
+        initial={{ y: 20, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.4 }}
+        style={{ fontSize: '1.25rem', color: 'var(--text-muted)', marginBottom: '48px', maxWidth: '650px', lineHeight: 1.6, textAlign: 'center', fontWeight: 300 }}
+      >
+        Creează hituri moderne folosind Inteligență Artificială de top. Mixaj automat de studio, instrumentale orientale premium și claritate absolută.
+      </motion.p>
+      
+      <motion.button 
+        initial={{ scale: 0.9, opacity: 0 }}
+        animate={{ scale: 1, opacity: 1 }}
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        transition={{ delay: 0.5 }}
+        onClick={onStart} 
+        className="btn-primary" 
+        style={{ fontSize: '1.2rem', padding: '18px 48px', display: 'flex', alignItems: 'center', gap: '12px', margin: '0 auto 60px auto', borderRadius: '100px' }}
+      >
+        <Zap size={24} color="#000" /> Creează un Hit Acum
+      </motion.button>
 
-      <div style={{ width: '100%', maxWidth: '900px' }}>
-        <h3 style={{ color: 'var(--text-muted)', marginBottom: '24px', fontSize: '1rem', fontWeight: 500, letterSpacing: '0.05em', textTransform: 'uppercase' }}>Preseturi Populare</h3>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px' }}>
-          {PRESETS.map(preset => (
-            <div key={preset.id} onClick={onStart} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-glass)', borderRadius: '20px', padding: '24px', cursor: 'pointer', transition: 'all 0.3s', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }} onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; e.currentTarget.style.transform = 'translateY(-5px)'; }} onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; e.currentTarget.style.transform = 'translateY(0)'; }}>
-              <div style={{ fontSize: '2.5rem', filter: 'drop-shadow(0 4px 10px rgba(0,0,0,0.5))' }}>{preset.icon}</div>
-              <div style={{ fontWeight: 600, color: 'var(--text-main)' }}>{preset.label}</div>
-            </div>
+      <motion.div 
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.7 }}
+        style={{ width: '100%', maxWidth: '1000px' }}
+      >
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '20px' }}>
+          {PRESETS.map((preset, i) => (
+            <motion.div 
+              key={preset.id} 
+              whileHover={{ y: -5, scale: 1.02 }}
+              onClick={onStart} 
+              className="glass-panel"
+              style={{ padding: '24px', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: '12px' }}
+            >
+              <div style={{ fontSize: '2rem' }}>{preset.icon}</div>
+              <div style={{ fontWeight: 600, color: 'var(--text-main)', fontSize: '1.1rem' }}>{preset.label}</div>
+              <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>{preset.desc}</div>
+            </motion.div>
           ))}
         </div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   );
 }
 
@@ -293,10 +336,10 @@ export default function App() {
 
   return (
     <div>
-      <nav style={{ background: 'rgba(10, 10, 10, 0.7)', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,0.05)', padding: '16px 40px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, zIndex: 100 }}>
+      <nav style={{ background: 'rgba(7, 7, 7, 0.8)', backdropFilter: 'blur(20px)', borderBottom: '1px solid var(--border-glass)', padding: '16px 40px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, zIndex: 100 }}>
         <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#fff', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', letterSpacing: '-0.03em' }} onClick={() => setActiveTab('home')}>
-          <div style={{ background: 'linear-gradient(135deg, var(--primary), var(--accent))', padding: '8px', borderRadius: '10px', display: 'flex' }}>
-            <Music size={20} color="#fff" />
+          <div style={{ background: 'var(--primary)', padding: '8px', borderRadius: '10px', display: 'flex' }}>
+            <Music size={20} color="#000" />
           </div>
           Muzica AI
         </div>
@@ -306,8 +349,8 @@ export default function App() {
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               style={{
-                background: activeTab === tab.id ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
-                color: activeTab === tab.id ? '#fff' : 'var(--text-muted)',
+                background: activeTab === tab.id ? 'var(--glow-gold)' : 'transparent',
+                color: activeTab === tab.id ? 'var(--primary)' : 'var(--text-muted)',
                 border: 'none',
                 padding: '10px 18px',
                 borderRadius: '12px',
@@ -317,7 +360,7 @@ export default function App() {
                 gap: '8px',
                 fontFamily: 'inherit',
                 fontWeight: 500,
-                transition: 'all 0.2s',
+                transition: 'all 0.3s',
                 fontSize: '0.95rem'
               }}
               onMouseEnter={(e) => { if(activeTab !== tab.id) e.currentTarget.style.color = '#fff' }}
