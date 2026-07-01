@@ -177,10 +177,25 @@ export const generateMusicTask = async (settings, provider, apiKey) => {
   });
 
   if (!response.ok) {
-    if (response.status === 503) {
-      throw new Error('Eroare 503: Serverele AI (Suno/Udio) sunt momentan supraaglomerate sau indisponibile. Te rog să încerci din nou în câteva minute, sau schimbă providerul din Pasul 5.');
+    let errorMsg = 'Eroare API PiAPI: ' + response.status;
+    try {
+      const errData = await response.json();
+      const rawMsg = errData?.error?.raw_message || '';
+      const msg = errData?.message || '';
+      
+      if (rawMsg.includes('plan limit') || msg.includes('plan limit')) {
+         errorMsg = "Ai atins limita de piese generate simultan! Așteaptă 2-3 minute ca piesele anterioare să se termine.";
+      } else if (response.status === 503 || msg.includes('maintenance')) {
+         errorMsg = 'Serverele AI (Suno/Udio) sunt momentan în mentenanță sau supraaglomerate. Schimbă providerul din panou sau așteaptă 5 minute.';
+      } else if (msg) {
+         errorMsg = 'Eroare AI: ' + msg;
+      }
+    } catch (e) {
+      if (response.status === 503) {
+        errorMsg = 'Serverele AI sunt indisponibile (503).';
+      }
     }
-    throw new Error('Eroare API PiAPI: ' + response.status);
+    throw new Error(errorMsg);
   }
   const data = await response.json();
   
