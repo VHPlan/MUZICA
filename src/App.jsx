@@ -63,18 +63,34 @@ export default function App() {
             let extractedVideo = '';
             let extractedImage = '';
             
-            // Try different structures known for PiAPI (Suno vs Udio)
             const resultData = data.data || data;
             
-            if (resultData.clips && resultData.clips.length > 0) {
-              extractedAudio = resultData.clips[0].audio_url;
-              extractedVideo = resultData.clips[0].video_url;
-              extractedImage = resultData.clips[0].image_url;
-            } else if (resultData.task_result) {
-              extractedAudio = resultData.task_result.audio_url || (resultData.task_result.clips && resultData.task_result.clips[0]?.audio_url) || '';
-              extractedVideo = resultData.task_result.video_url || (resultData.task_result.clips && resultData.task_result.clips[0]?.video_url) || '';
-              extractedImage = resultData.task_result.image_url || (resultData.task_result.clips && resultData.task_result.clips[0]?.image_url) || '';
-            } else {
+            // Helper to extract from a clip object
+            const extractFromClip = (clip) => {
+              if (clip?.audio_url) extractedAudio = clip.audio_url;
+              if (clip?.video_url) extractedVideo = clip.video_url;
+              if (clip?.image_url) extractedImage = clip.image_url;
+            };
+
+            // 1. If clips is an array
+            if (Array.isArray(resultData.clips) && resultData.clips.length > 0) {
+              extractFromClip(resultData.clips[0]);
+            } 
+            // 2. If clips is an object (Dictionary)
+            else if (resultData.clips && typeof resultData.clips === 'object') {
+              const keys = Object.keys(resultData.clips);
+              if (keys.length > 0) {
+                extractFromClip(resultData.clips[keys[0]]);
+              }
+            } 
+            // 3. Fallback task_result
+            else if (resultData.task_result) {
+              extractedAudio = resultData.task_result.audio_url || '';
+              extractedVideo = resultData.task_result.video_url || '';
+              extractedImage = resultData.task_result.image_url || '';
+            } 
+            // 4. Flat structure
+            else {
               extractedAudio = resultData.audio_url || '';
               extractedVideo = resultData.video_url || '';
               extractedImage = resultData.image_url || '';
@@ -269,7 +285,10 @@ export default function App() {
               {currentTrack.audioUrl ? (
                 <audio controls src={currentTrack.audioUrl} autoPlay style={{ width: '100%', maxWidth: '600px', height: '40px' }} />
               ) : (
-                <div style={{ color: 'var(--danger)' }}>Eroare: URL Audio Indisponibil în API</div>
+                <div style={{ color: 'var(--danger)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                  <span>Eroare: URL Audio Indisponibil în API</span>
+                  <button className="nav-btn" onClick={() => alert(JSON.stringify(currentTrack.rawResponse, null, 2))} style={{ fontSize: '0.8rem', padding: '4px 12px' }}>Vezi RAW JSON</button>
+                </div>
               )}
             </div>
 
