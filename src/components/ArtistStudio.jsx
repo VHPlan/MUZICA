@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Play, Download, Share2, Heart, Mic2, Disc3, Smile, FileText, Code, CheckCircle, Sliders, Music, Zap, Settings2 } from 'lucide-react';
+import { Play, Download, Share2, Heart, Mic2, Disc3, Smile, FileText, Code, CheckCircle, Sliders, Music, Zap, Settings2, ChevronRight } from 'lucide-react';
 import { generateMusicTask, buildPrompt } from '../services/AIProvider';
 import PremiumDashboard from './PremiumDashboard';
 
