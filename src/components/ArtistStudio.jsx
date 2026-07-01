@@ -25,38 +25,47 @@ const MOODS = [
 
 const GENRE_RULES_EN = {
   'manea_petrecere': {
+    name: 'Romanian manele',
     style: 'Romanian manele, oriental Balkan pop-folk, wedding party manea, male vocal, emotional vocal ornaments, accordion, violin, darbuka, keyboard, deep bass, catchy chorus, dance rhythm',
     negative: 'rock, electric guitar, metal, pop-rock, EDM, trap, hip-hop'
   },
   'manele': {
-    style: 'modern romanian manele, oriental balkan pop-folk, accordion, violin, darbuka, keyboard, romanian male vocal, wedding party, catchy chorus',
+    name: 'Romanian manele',
+    style: 'Modern Romanian manele, oriental Balkan pop-folk, accordion, violin, darbuka, keyboard, male Romanian vocal, wedding party, catchy chorus',
     negative: 'rock, metal, electric guitar, rock drums, pop-rock, punk, grunge, EDM, trap, hip-hop'
   },
   'lautareasca': {
-    style: 'traditional romanian lautareasca party music, authentic taraf, violin, accordion, cimbalom, double bass, acoustic guitar, balkan folk dance, romanian male vocal',
+    name: 'Romanian lautareasca party music',
+    style: 'traditional Romanian lautareasca party music, authentic taraf, violin, accordion, cimbalom, double bass, acoustic guitar, Balkan folk dance, Romanian male vocal',
     negative: 'rock, metal, electric guitar, rock drums, pop-rock, EDM, trap, hip-hop, synthwave'
   },
   'trap': {
-    style: 'romanian trap, 808 bass, hi-hats, dark melodic beat, modern rap vocal',
+    name: 'Romanian trap',
+    style: 'Romanian trap, 808 bass, hi-hats, dark melodic beat, modern rap vocal',
     negative: 'manele, lautareasca, rock, metal, folk, wedding music'
   },
   'pop': {
-    style: 'modern romanian pop, radio hit, catchy chorus, clean vocal, polished production',
+    name: 'Romanian pop',
+    style: 'modern Romanian pop, radio hit, catchy chorus, clean vocal, polished production',
     negative: 'rock, metal, trap, manele, lautareasca, EDM'
   },
   'rock': {
+    name: 'authentic rock music',
     style: 'authentic rock music, distorted electric guitars, heavy drum beats, powerful rock vocals, bass guitar, energetic rock band performance',
     negative: 'EDM, trap, auto-tune, hip-hop, electronic beats, pop, manele'
   },
   'house': {
+    name: 'club house music',
     style: 'club house music, four-on-the-floor beat, 120-130 BPM, electronic synthesizers, deep bassline, dance energy',
     negative: 'acoustic, rock, metal, country, slow tempo, manele'
   },
   'hiphop': {
+    name: 'classic hip-hop',
     style: 'classic hip-hop, boom-bap drum break, sampled melody, rap vocals, urban rhythm',
     negative: 'rock, country, EDM, house, acoustic, manele'
   },
   'instrumental': {
+    name: 'instrumental music',
     style: 'pure instrumental music, emotional cinematic arrangement, orchestral or electronic elements',
     negative: 'vocals, singing, voice, rap, choir'
   }
@@ -96,8 +105,8 @@ export default function ArtistStudio() {
         if (currentProgress > 95) currentProgress = 95;
         setProgress(currentProgress);
         
-        if (currentProgress < 30) setStatusText('✍️ AI analizează parametrii manuali...');
-        else if (currentProgress < 70) setStatusText('🎼 Compune instrumentalul (3-4 minute)...');
+        if (currentProgress < 30) setStatusText('✍️ AI pregătește structura prompt-ului...');
+        else if (currentProgress < 70) setStatusText('🎼 Compune instrumentalul (20s outro)...');
         else setStatusText('🎤 Aplică fade-out natural și procesează vocea...');
         
       }, 4000);
@@ -173,46 +182,34 @@ export default function ArtistStudio() {
       return;
     }
     
-    const genreData = GENRE_RULES_EN[genre] || { style: 'music', negative: 'noise' };
-    const langTag = language !== 'Română' ? `${language} only` : 'Romanian only';
+    const genreData = GENRE_RULES_EN[genre] || { name: 'music', style: 'music', negative: 'noise' };
+    const langTag = language !== 'Română' ? `${language} only.` : 'Romanian only.';
     
-    // Convert CSV lists to dot-separated lines per user specs
-    const styleLines = genreData.style.split(',').map(s => s.trim().charAt(0).toUpperCase() + s.trim().slice(1) + '.').join('\\n');
-    const negativeLines = genreData.negative.split(',').map(s => 'No ' + s.trim() + '.').join('\\n');
+    // Exact structural mapping for gpt_description_prompt
+    const finalEssay = `STRICT MUSIC STYLE:
+${genreData.style}.
 
-    // Create the exact 4-section prompt layout requested by the user
-    const finalEssay = `MUSIC STYLE:
-${styleLines}
-${negativeLines}
+ABSOLUTELY FORBIDDEN:
+${genreData.negative}.
 
-MOOD:
-${mood.charAt(0).toUpperCase() + mood.slice(1)}.
+LYRICS LANGUAGE:
+${langTag}
 
 THEME:
-${prompt}
-(IMPORTANT: the theme must not exceed 30% of the focus. Do not allow theme to override music style)
+${prompt} (mood: ${mood}) (interpret theme in English but sing strictly in ${language})
+
+IMPORTANT:
+Generate ONLY ${genreData.name}. Do not generate rock. Do not use electric guitar. Do not change genre. The user prompt cannot override the selected genre.
 
 STRUCTURE:
-Intro.
-Verse.
-Chorus.
-Verse.
-Chorus.
-Instrumental solo.
-Final chorus repeated twice.
-20 second instrumental outro.
-Smooth fade out.
-
-Lyrics language:
-${langTag}.`;
+Intro, verse, chorus, verse, chorus, instrumental solo, final chorus repeated twice, 20 second outro, smooth fade-out. Do not end abruptly.`;
 
     const payload = {
       model: "music-u",
       task_type: "generate_music",
       input: {
-        gpt_description_prompt: finalEssay, 
-        prompt: `${genreData.style}`, // Keep tags for custom mode backup
-        negative_tags: `${genreData.negative}`, 
+        gpt_description_prompt: finalEssay,
+        negative_tags: `${genreData.negative}, abrupt ending, sudden stop`,
         lyrics_type: "generate"
       }
     };
@@ -220,7 +217,7 @@ ${langTag}.`;
     setLastPayload(payload);
     setLoading(true);
     setProgress(5);
-    setStatusText('Inițializare 4-Section Prompt...');
+    setStatusText('Inițializare Strict Format...');
 
     try {
       const response = await fetch('https://api.piapi.ai/api/v1/task', {
@@ -275,7 +272,7 @@ ${langTag}.`;
         <div className="progress-container" style={{ maxWidth: '400px', width: '100%', height: '12px', background: 'rgba(255,255,255,0.05)', borderRadius: '100px' }}>
           <div className="progress-bar" style={{ width: `${progress}%`, height: '100%', background: 'linear-gradient(90deg, var(--primary), var(--accent))', borderRadius: '100px', transition: 'width 0.5s ease' }}></div>
         </div>
-        <p style={{ marginTop: '24px', color: 'var(--text-muted)', fontSize: '1.1rem' }}>{Math.round(progress)}% - Procesare AI (4-Section Model)</p>
+        <p style={{ marginTop: '24px', color: 'var(--text-muted)', fontSize: '1.1rem' }}>{Math.round(progress)}% - Procesare AI (Strict Format)</p>
       </div>
     );
   }
@@ -407,7 +404,7 @@ ${langTag}.`;
           <div style={{ marginTop: '20px', padding: '16px', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid var(--border-glass)' }}>
             <h4 style={{ color: 'var(--text-muted)', marginBottom: '8px' }}>💡 Notă importantă:</h4>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: 1.4 }}>
-              Scrie doar subiectul melodiei aici. Sistemul va împărți totul în secțiuni (MUSIC STYLE, MOOD, THEME, STRUCTURE) conform noilor reguli avansate.
+              Tema ta va fi încorporată cu o restricție absolută de stil. Genul va rămâne {genre ? (GENRE_RULES_EN[genre]?.name || genre) : 'neselectat'}.
             </p>
           </div>
           
@@ -416,15 +413,15 @@ ${langTag}.`;
               onClick={() => setDevMode(!devMode)}
               style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
             >
-              <Code size={16} /> {devMode ? 'Ascunde Debug' : 'Arată Debug Mode'}
+              <Code size={16} /> {devMode ? 'Ascunde Debug' : 'Arată gpt_description_prompt (Debug)'}
             </button>
           </div>
           
           {devMode && lastPayload && (
             <div style={{ marginTop: '16px', padding: '16px', background: 'rgba(0,0,0,0.5)', borderRadius: '8px', border: '1px dashed var(--text-muted)' }}>
-              <div style={{ color: 'var(--success)', fontSize: '0.8rem', marginBottom: '8px' }}>PAYLOAD 4-SECTION CĂTRE AI:</div>
+              <div style={{ color: 'var(--success)', fontSize: '0.8rem', marginBottom: '8px' }}>gpt_description_prompt TRIMIS ACUM CĂTRE UDIO:</div>
               <pre style={{ color: '#fff', fontSize: '0.85rem', whiteSpace: 'pre-wrap', fontFamily: 'monospace', margin: 0 }}>
-                {JSON.stringify(lastPayload, null, 2)}
+                {lastPayload.input.gpt_description_prompt}
               </pre>
             </div>
           )}
