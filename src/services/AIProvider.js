@@ -25,6 +25,9 @@ const TRANSLATIONS = {
     'Saxofon': 'Saxophone',
     'Țambal': 'Cimbalom',
     'Chitară acustică': 'Acoustic guitar'
+  }
+};
+
 const GLOBAL_NEGATIVE = 'No rock, no jazz, no classical, no country, no heavy metal, no acoustic indie.';
 
 const sanitizeString = (str) => {
