@@ -128,10 +128,9 @@ export const generateMusicTask = async (settings, provider, apiKey) => {
     model = "music-s";
     payload = {
       model: model,
-      task_type: "generate_music",
+      task_type: "generate",
       input: {
-        prompt: promptData.prompt,
-        tags: promptData.tags,
+        gpt_description_prompt: promptData.prompt || promptData,
         title: `AI Hit - ${settings.genre}`,
         make_instrumental: false
       }
@@ -140,10 +139,10 @@ export const generateMusicTask = async (settings, provider, apiKey) => {
     model = "music-u";
     payload = {
       model: model,
-      task_type: "generate_music",
+      task_type: "generate",
       input: {
-        gpt_description_prompt: promptData,
-        negative_tags: "rock, metal, abrupt ending",
+        gpt_description_prompt: promptData.prompt || promptData,
+        negative_tags: GLOBAL_NEGATIVE,
         lyrics_type: "generate"
       }
     };
