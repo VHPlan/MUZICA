@@ -223,6 +223,8 @@ export default function App() {
     } catch (error) {
       updateTask(localId, { status: 'Eroare', errorMsg: error.message });
     }
+    
+    return localId;
   };
 
   const retryTask = (task) => {
@@ -297,7 +299,7 @@ export default function App() {
 
       <main style={{ padding: '40px 20px', maxWidth: '1200px', margin: '0 auto' }}>
         {activeTab === 'home' && <HeroSection onStart={() => setActiveTab('studio')} />}
-        {activeTab === 'studio' && <ArtistStudio startGlobalGeneration={startGlobalGeneration} />}
+        {activeTab === 'studio' && <ArtistStudio startGlobalGeneration={startGlobalGeneration} activeTasks={activeTasks} goToLibrary={() => setActiveTab('library')} />}
         {activeTab === 'library' && <Library libraryUpdated={libraryCounter} activeTasks={activeTasks} cancelTask={cancelTask} retryTask={retryTask} />}
         {activeTab === 'tophits' && <TopHits />}
         {activeTab === 'settings' && <Settings />}

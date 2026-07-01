@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Play, Download, Share2, Heart, Mic2, Disc3, Smile, FileText, Code, CheckCircle, Sliders, Music, Zap, Settings2 } from 'lucide-react';
 import { generateMusicTask, buildPrompt } from '../services/AIProvider';
+import PremiumDashboard from './PremiumDashboard';
 
 const GENRES = ['Manele', 'Lăutărească', 'Trap', 'Pop', 'Rock', 'House'];
 
@@ -28,8 +29,9 @@ const PRESETS = [
   { id: 'petrecere', icon: '🥂', label: 'Petrecere', settings: { genre: 'Manele', subgenre: 'Petrecere', instruments: ['Tarabană', 'Acordeon'], tempo: 'Rapid', energy: 100, voice: 'Masculină', atmosphere: 'Petrecere' } }
 ];
 
-export default function ArtistStudio({ startGlobalGeneration }) {
+export default function ArtistStudio({ startGlobalGeneration, activeTasks, goToLibrary }) {
   const [step, setStep] = useState(1);
+  const [trackingTaskId, setTrackingTaskId] = useState(null);
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
   const [statusText, setStatusText] = useState('');
@@ -111,7 +113,9 @@ export default function ArtistStudio({ startGlobalGeneration }) {
     if (!apiKey) { alert("Introduce cheia API în Setări!"); return; }
 
     const settings = { genre, subgenre, energy, tempo, instruments, voice, atmosphere, language, theme, speedMode };
-    startGlobalGeneration(settings, provider, apiKey);
+    const localId = await startGlobalGeneration(settings, provider, apiKey);
+    
+    setTrackingTaskId(localId);
     setStep(6);
   };
 
@@ -133,34 +137,14 @@ export default function ArtistStudio({ startGlobalGeneration }) {
   };
 
   if (step === 6) {
+    const trackedTask = activeTasks?.find(t => t.id === trackingTaskId);
+    
     return (
-      <div style={{ animation: 'fadeIn 0.5s' }} className="glass-panel">
-        <div style={{ padding: '40px', maxWidth: '600px', margin: '0 auto', textAlign: 'center' }}>
-          
-            <div>
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', marginBottom: '24px', color: 'var(--success)' }}>
-                <CheckCircle size={40} />
-                <h2 style={{ fontSize: '2rem', margin: 0 }}>Cererea a fost trimisă!</h2>
-              </div>
-              <p style={{ color: 'var(--text-muted)', fontSize: '1.2rem', marginBottom: '32px' }}>
-                Generarea rulează în fundal. O poți urmări în tab-ul <strong>Biblioteca Mea</strong> sau pe panoul lateral.
-              </p>
-              
-              <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
-                <button 
-                  className="btn-primary glow-btn" 
-                  style={{ width: '100%', padding: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }} 
-                  onClick={() => { setStep(5); }}
-                >
-                  <Zap size={20} /> Modifică setările și mai generează o variantă
-                </button>
-
-                <button className="btn-secondary" style={{ width: '100%', marginTop: '16px', border: 'none', background: 'transparent', textDecoration: 'underline' }} onClick={() => setStep(1)}>Creează un hit total nou</button>
-              </div>
-            </div>
-
-        </div>
-      </div>
+      <PremiumDashboard 
+        task={trackedTask} 
+        onReset={() => { setTrackingTaskId(null); setStep(1); }} 
+        goToLibrary={goToLibrary} 
+      />
     );
   }
 
