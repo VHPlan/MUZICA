@@ -169,6 +169,30 @@ h1, h2, h3, h4, h5, h6 {
   border-color: var(--hover);
 }
 
+/* Genre Cards */
+.genre-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: var(--radius-sm);
+  padding: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.genre-card:hover {
+  background: var(--bg-card-hover);
+  border-color: rgba(255,255,255,0.2);
+}
+
+.genre-card.active {
+  background: rgba(124, 58, 237, 0.1);
+  border-color: var(--primary);
+  box-shadow: inset 0 0 0 1px var(--primary);
+}
+
 /* Sliders */
 input[type="range"] {
   -webkit-appearance: none;
