@@ -6,6 +6,37 @@ export default function ArtistStudio() {
   const [genre, setGenre] = useState('manele');
   const [artistName, setArtistName] = useState('');
   const [status, setStatus] = useState('');
+  const [audioUrl, setAudioUrl] = useState('');
+
+  const pollTaskStatus = async (taskId, apiKey) => {
+    try {
+      const response = await fetch(`https://api.piapi.ai/api/v1/task/${taskId}`, {
+        headers: { 'x-api-key': apiKey }
+      });
+      const data = await response.json();
+
+      if (data.status === 'completed') {
+        const songUrl = data.data?.audio_url || (data.data?.clips && data.data.clips[0]?.audio_url);
+        if (songUrl) {
+          setAudioUrl(songUrl);
+          setStatus('Melodia este gata! O poți asculta mai jos.');
+        } else {
+          setStatus('Eroare: API-ul nu a returnat link-ul melodiei.');
+        }
+        setLoading(false);
+      } else if (data.status === 'failed') {
+        setStatus('Generarea a eșuat la server.');
+        setLoading(false);
+      } else {
+        setStatus('Se procesează... Așteptăm melodia (poate dura 2-3 minute).');
+        setTimeout(() => pollTaskStatus(taskId, apiKey), 10000);
+      }
+    } catch (err) {
+      console.error(err);
+      setStatus('Eroare la verificarea statusului.');
+      setLoading(false);
+    }
+  };
 
   const handleGenerate = async () => {
     const apiKey = localStorage.getItem('piapi_key');
@@ -13,7 +44,6 @@ export default function ArtistStudio() {
       alert("Te rog să introduci cheia API în meniul de Setări mai întâi!");
       return;
     }
-
     if (!prompt) {
       alert("Te rog să scrii un scurt prompt despre melodie!");
       return;
@@ -21,6 +51,7 @@ export default function ArtistStudio() {
 
     setLoading(true);
     setStatus('Trimitem cererea către serverele AI (PiAPI)...');
+    setAudioUrl('');
 
     try {
       const response = await fetch('https://api.piapi.ai/api/v1/task', {
@@ -42,15 +73,14 @@ export default function ArtistStudio() {
         throw new Error('Eroare de la serverul PiAPI. Verifică dacă cheia este validă și dacă ai fonduri pe cont.');
       }
 
-      setStatus('Cererea a fost acceptată! AI-ul compune piesa... Va dura în jur de 2 minute.');
+      const data = await response.json();
       
-      // În acest punct, în mod normal trebuie interogat serverul (polling) la fiecare 10 secunde 
-      // până când melodia e gata. Pentru moment am implementat doar trimiterea cu succes.
-      setTimeout(() => {
-        setLoading(false);
-        setStatus('');
-        alert(`Bravo! Funcționalitatea de generare comunică acum cu PiAPI! Melodia pentru "${artistName || 'Artist'}" ar fi fost returnată aici în format mp3.`);
-      }, 4000);
+      if (data && data.task_id) {
+        setStatus('Cererea a fost acceptată! AI-ul compune piesa... Va dura în jur de 2-3 minute.');
+        setTimeout(() => pollTaskStatus(data.task_id, apiKey), 10000);
+      } else {
+        throw new Error('Serverul nu a returnat un Task ID.');
+      }
 
     } catch (error) {
       console.error(error);
@@ -97,10 +127,20 @@ export default function ArtistStudio() {
           disabled={loading}
           style={{ padding: '16px', fontSize: '1.1rem', marginTop: '12px', opacity: loading ? 0.7 : 1 }}
         >
-          {loading ? '🎤 AI-ul intră în studio...' : '🔥 Generează Melodia (3 Min)'}
+          {loading ? '🎤 AI-ul intră în studio (Așteaptă)...' : '🔥 Generează Melodia (3 Min)'}
         </button>
 
         {status && <p style={{ color: 'var(--secondary)', textAlign: 'center', marginTop: '10px' }}>{status}</p>}
+
+        {audioUrl && (
+          <div style={{ marginTop: '20px', padding: '16px', background: 'rgba(0,0,0,0.3)', borderRadius: '12px', border: '1px solid var(--primary)' }}>
+            <h3 style={{ marginBottom: '12px', color: 'var(--primary)' }}>Hit-ul tău este gata! 🎧</h3>
+            <audio controls src={audioUrl} style={{ width: '100%' }}></audio>
+            <a href={audioUrl} target="_blank" rel="noreferrer" style={{ display: 'block', textAlign: 'center', marginTop: '12px', color: 'var(--secondary)', textDecoration: 'none' }}>
+              ⬇️ Descarcă Melodia (Click dreapta -> Save Video As)
+            </a>
+          </div>
+        )}
       </div>
     </div>
   );
