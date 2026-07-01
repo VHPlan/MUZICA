@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Play, Sparkles, Settings2 } from 'lucide-react';
+import React, { useState, useRef } from 'react';
+import { Play, Sparkles, Settings2, Square } from 'lucide-react';
 
 const GENRES = [
   { id: 'manele_club', title: 'Manele de Club', desc: 'Beat rapid, bass adânc' },
@@ -20,6 +20,49 @@ export default function CreationWizard({ onGenerate }) {
   const [selectedInstruments, setSelectedInstruments] = useState([]);
   const [apiKey, setApiKey] = useState(localStorage.getItem('piapi_key') || '');
   const [provider, setProvider] = useState('suno');
+  
+  const [isPlayingDemo, setIsPlayingDemo] = useState(false);
+  const audioRef = useRef(null);
+
+  const GENRE_SEARCH_TERMS = {
+    'Manele de Club': 'Tzanca Uraganu',
+    'Trapanele': 'Bogdan DLP',
+    'Tarabană & Bass': 'Darbuka',
+    'Manele Vechi (Anii 2000)': 'Nicolae Guta',
+    'Manele de Jale': 'Florin Salam',
+    'Petrecere': 'Muzica de petrecere',
+    'Balkan Brass': 'Fanfare Ciocarlia',
+    'Lăutărească': 'Taraf de Haidouks'
+  };
+
+  const playDemo = async () => {
+    if (isPlayingDemo) {
+      audioRef.current?.pause();
+      setIsPlayingDemo(false);
+      return;
+    }
+    
+    try {
+      const term = GENRE_SEARCH_TERMS[genre] || 'Manele';
+      const res = await fetch(`https://itunes.apple.com/search?term=${encodeURIComponent(term)}&limit=1&media=music`);
+      const data = await res.json();
+      if (data.results && data.results[0] && data.results[0].previewUrl) {
+        if (!audioRef.current) {
+          audioRef.current = new Audio(data.results[0].previewUrl);
+        } else {
+          audioRef.current.src = data.results[0].previewUrl;
+        }
+        audioRef.current.play();
+        setIsPlayingDemo(true);
+        audioRef.current.onended = () => setIsPlayingDemo(false);
+      } else {
+        alert('Nu am găsit un demo pentru acest gen.');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Eroare la redarea demo-ului.');
+    }
+  };
 
   const ALL_INSTRUMENTS = ['Tarabană', 'Bass', 'Vioară', 'Clarinet', 'Saxofon', 'Acordeon', 'Țambal'];
 
@@ -55,18 +98,34 @@ export default function CreationWizard({ onGenerate }) {
       
       <div className="dash-card" style={{ marginBottom: '24px' }}>
         <h3 style={{ fontSize: '1.1rem', marginBottom: '16px' }}>1. Stilul Muzical</h3>
-        <div className="dash-grid">
+        <div className="dash-grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))' }}>
           {GENRES.map((g) => (
             <div 
               key={g.id}
-              className={`compact-pill ${genre === g.title ? 'active' : ''}`}
-              onClick={() => setGenre(g.title)}
-              style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', padding: '12px' }}
+              className={`genre-card ${genre === g.title ? 'active' : ''}`}
+              onClick={() => {
+                setGenre(g.title);
+                if (isPlayingDemo) {
+                  audioRef.current?.pause();
+                  setIsPlayingDemo(false);
+                }
+              }}
             >
-              <span style={{ fontWeight: 600, marginBottom: '4px' }}>{g.title}</span>
-              <span style={{ fontSize: '0.75rem', opacity: 0.7, textAlign: 'left' }}>{g.desc}</span>
+              <h4 style={{ fontWeight: 600, marginBottom: '4px' }}>{g.title}</h4>
+              <p style={{ fontSize: '0.75rem', opacity: 0.7 }}>{g.desc}</p>
             </div>
           ))}
+        </div>
+        
+        <div style={{ marginTop: '16px', display: 'flex', justifyContent: 'flex-end' }}>
+          <button 
+            className="btn-secondary" 
+            onClick={playDemo}
+            style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', fontSize: '0.9rem' }}
+          >
+            {isPlayingDemo ? <Square size={16} fill="currentColor" /> : <Play size={16} fill="currentColor" />}
+            {isPlayingDemo ? 'Oprește Demo' : 'Ascultă un Exemplu din acest Stil'}
+          </button>
         </div>
       </div>
 
