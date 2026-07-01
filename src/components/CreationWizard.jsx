@@ -3,9 +3,13 @@ import { Play, Sparkles, Settings2 } from 'lucide-react';
 
 const GENRES = [
   { id: 'manele_club', title: 'Manele de Club', desc: 'Beat rapid, bass adânc' },
-  { id: 'manele_petrecere', title: 'Petrecere', desc: 'Acordeon și vioară live' },
+  { id: 'trapanele', title: 'Trapanele', desc: 'Trap modern + Manele' },
   { id: 'tarabana', title: 'Tarabană & Bass', desc: 'Ritmuri balcanice virale' },
-  { id: 'lautareasca', title: 'Lăutărească', desc: 'Instrumental clasic tradițional' }
+  { id: 'manele_vechi', title: 'Manele Vechi (Anii 2000)', desc: 'Stilul clasic consacrat' },
+  { id: 'manele_jale', title: 'Manele de Jale', desc: 'Emoțional, ritm lent' },
+  { id: 'petrecere', title: 'Petrecere', desc: 'Acordeon și vioară live' },
+  { id: 'balcanic', title: 'Balkan Brass', desc: 'Trâmbițe și alămuri' },
+  { id: 'lautareasca', title: 'Lăutărească', desc: 'Instrumental clasic' }
 ];
 
 export default function CreationWizard({ onGenerate }) {

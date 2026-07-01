@@ -54,6 +54,18 @@ export const buildPrompt = (settings, provider = 'suno') => {
   if (genre === 'Tarabană & Bass') {
     genreDirectives = "Viral Balkan trap, modern Romanian manele, dominant darbuka/tarabană percussion, extremely deep 808 bass, oriental keyboard riff, fast dance groove, repetitive catchy hook, club party atmosphere.";
     genreTags = "balkan trap, darbuka, oriental percussion, heavy bass, party, modern manele";
+  } else if (genre === 'Trapanele') {
+    genreDirectives = "Romanian trapanele, fusion of modern trap music and oriental manele, extremely heavy distorted 808 bass, hip-hop rhythm, autotune vocals, modern street vibe, dark club atmosphere.";
+    genreTags = "trapanele, trap, 808 bass, oriental hip-hop, autotune, modern manele";
+  } else if (genre === 'Manele Vechi (Anii 2000)') {
+    genreDirectives = "Classic old-school Romanian manele from the 2000s (stil vechi), nostalgic oriental pop, classic Casio keyboard tones, emotional traditional balkan rhythm, authentic lăutăresc party vibe.";
+    genreTags = "manele vechi, 2000s, classic oriental pop, nostalgic, balkan";
+  } else if (genre === 'Manele de Jale') {
+    genreDirectives = "Extremely emotional and sad Romanian manele (manele de jale/supărare), slow sorrowful tempo, crying violin, deep emotional vocals, melancholic and tragic atmosphere.";
+    genreTags = "manele de jale, sad, emotional, crying violin, slow tempo, melancholic";
+  } else if (genre === 'Balkan Brass') {
+    genreDirectives = "High-energy Balkan brass band music (muzică balcanică cu alămuri), aggressive trumpets, tuba, fast balkan wedding rhythm, chaotic joyful party atmosphere.";
+    genreTags = "balkan brass, trumpets, tuba, fast tempo, balkan wedding, energetic";
   } else if (genre === 'Manele de Club') {
     genreDirectives = "Extremely commercial Romanian club manele, modern EDM-oriental fusion, very heavy bass, reggaeton dance rhythm, modern synthesizer melodies, high energy club banger.";
     genreTags = "club manele, EDM oriental, heavy bass, reggaeton rhythm, synth pop";
