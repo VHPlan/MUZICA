@@ -10,7 +10,8 @@ const GENRES = [
   { id: 'petrecere', title: 'Petrecere', desc: 'Acordeon și vioară live' },
   { id: 'balcanic', title: 'Balkan Brass', desc: 'Trâmbițe și alămuri' },
   { id: 'lautareasca', title: 'Lăutărească', desc: 'Instrumental clasic' },
-  { id: 'tiganesti', title: 'Țigănești', desc: 'Gypsy folk, virtuozitate' }
+  { id: 'tiganesti', title: 'Țigănești', desc: 'Gypsy folk, virtuozitate' },
+  { id: 'house_bass', title: 'House Bass', desc: 'Slap house oriental, EDM' }
 ];
 
 export default function CreationWizard({ onGenerate }) {

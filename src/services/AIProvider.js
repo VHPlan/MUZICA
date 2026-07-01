@@ -81,6 +81,9 @@ export const buildPrompt = (settings, provider = 'suno') => {
   } else if (genre === 'Țigănești') {
     genreDirectives = "Authentic Romanian gypsy taraf music, fast sârba dance rhythm, extreme acoustic virtuosity, highly improvised acoustic violin and accordion melisma, rhythmic cimbalom (țambal), upright bass, raw traditional Roma culture vibe, highly energetic taraf style.";
     genreTags = "taraf, gypsy folk, fast sarba rhythm, accordion, cimbalom, violin melisma";
+  } else if (genre === 'House Bass') {
+    genreDirectives = "Modern Romanian oriental slap house, deep bouncy house bassline, punchy 4/4 EDM club beat, electronic synthesizer melodies, high energy dance floor anthem, electronic music.";
+    genreTags = "slap house, oriental house, deep bouncy bass, edm, 4/4 beat, club anthem";
   } else {
     genreDirectives = `Romanian ${genre} style, balkan oriental pop.`;
     genreTags = "balkan, oriental, pop";
