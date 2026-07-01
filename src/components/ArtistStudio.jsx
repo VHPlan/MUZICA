@@ -155,6 +155,19 @@ export default function ArtistStudio() {
           setAudioUrl(finalUrl);
           setSongTitle(finalTitle);
           setStep(5);
+          
+          // Save to Local Storage
+          const existingLibrary = JSON.parse(localStorage.getItem('muzica_ai_library') || '[]');
+          const newSong = {
+            id: Date.now().toString(),
+            title: finalTitle,
+            artist: artistName || 'Artist Virtual AI',
+            genre: genre || 'Nespecificat',
+            url: finalUrl,
+            date: new Date().toLocaleDateString('ro-RO')
+          };
+          localStorage.setItem('muzica_ai_library', JSON.stringify([newSong, ...existingLibrary]));
+          
         } else {
           alert('Eroare Critică: Lipsă link audio în răspuns.');
         }

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import ArtistStudio from './components/ArtistStudio';
 import Settings from './components/Settings';
 import './App.css'; 
-import { Music, Settings as SettingsIcon, Home, Headphones, Trophy } from 'lucide-react';
+import { Music, Settings as SettingsIcon, Home, Headphones, Trophy, Trash2, Play, Download } from 'lucide-react';
 
 function HeroSection({ onStart }) {
   return (
@@ -21,10 +21,62 @@ function HeroSection({ onStart }) {
 }
 
 function Library() {
+  const [songs, setSongs] = useState([]);
+
+  React.useEffect(() => {
+    const saved = JSON.parse(localStorage.getItem('muzica_ai_library') || '[]');
+    setSongs(saved);
+  }, []);
+
+  const handleDelete = (id) => {
+    const updated = songs.filter(s => s.id !== id);
+    setSongs(updated);
+    localStorage.setItem('muzica_ai_library', JSON.stringify(updated));
+  };
+
   return (
     <div className="glass-panel" style={{ padding: '32px', minHeight: '400px' }}>
       <h2 style={{ marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '10px' }}><Headphones /> Biblioteca Mea</h2>
-      <p style={{ color: 'var(--text-muted)' }}>Aici vor apărea melodiile tale salvate pe viitor.</p>
+      
+      {songs.length === 0 ? (
+        <p style={{ color: 'var(--text-muted)' }}>Aici vor apărea melodiile tale salvate. Nu ai generat niciuna încă.</p>
+      ) : (
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '20px' }}>
+          {songs.map(song => (
+            <div key={song.id} style={{ background: 'rgba(0,0,0,0.3)', padding: '20px', borderRadius: '16px', border: '1px solid var(--border-glass)', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+                <div>
+                  <h3 style={{ margin: '0 0 4px 0', fontSize: '1.2rem', color: 'var(--text-main)' }}>{song.title}</h3>
+                  <p style={{ margin: 0, color: 'var(--primary)', fontSize: '0.9rem' }}>{song.artist}</p>
+                </div>
+                <button 
+                  onClick={() => handleDelete(song.id)}
+                  style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '4px' }}
+                  title="Șterge piesa"
+                >
+                  <Trash2 size={18} />
+                </button>
+              </div>
+              
+              <div style={{ display: 'flex', gap: '8px', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '8px' }}>
+                <span style={{ background: 'rgba(255,255,255,0.05)', padding: '4px 8px', borderRadius: '4px' }}>{song.genre}</span>
+                <span style={{ background: 'rgba(255,255,255,0.05)', padding: '4px 8px', borderRadius: '4px' }}>{song.date}</span>
+              </div>
+              
+              <audio controls src={song.url} style={{ width: '100%', height: '36px' }}></audio>
+              
+              <a 
+                href={song.url} 
+                target="_blank" 
+                rel="noreferrer"
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '8px', background: 'rgba(139, 92, 246, 0.2)', color: 'var(--text-main)', borderRadius: '8px', textDecoration: 'none', fontSize: '0.9rem', transition: '0.2s' }}
+              >
+                <Download size={16} /> Descarcă Fișierul
+              </a>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
