@@ -42,7 +42,7 @@ const NEGATIVE_RULES = {
  * Builds the exact prompt structure based on the provider and settings.
  */
 export const buildPrompt = (settings, provider = 'suno') => {
-  const { genre, subgenre, energy, tempo, instruments, voice, atmosphere, language, theme } = settings;
+  const { genre, subgenre, energy, tempo, instruments, voice, atmosphere, language, theme, speedMode } = settings;
   
   const mappedVoice = TRANSLATIONS.voice[voice] || voice;
   const mappedTempo = TRANSLATIONS.tempo[tempo] || tempo;
@@ -80,12 +80,17 @@ Outro with fade out.`;
       mappedVoice,
       mappedTempo,
       `energy ${energy}`,
-      `${atmosphere} atmosphere`,
-      'catchy repetitive chorus'
+      `${atmosphere} atmosphere`
     ].filter(Boolean).join(', ');
 
-    // The user requested a highly compressed, clear prompt
-    const promptText = `${tags}, ${mappedLanguage} lyrics only. Theme: ${theme}. ${negative} Natural outro, fade out.`;
+    let promptText = '';
+    if (speedMode === 'Rapid') {
+      tags += ', catchy chorus';
+      promptText = `${tags}. Theme: ${theme}. ${negative}`;
+    } else {
+      tags += ', catchy repetitive chorus';
+      promptText = `${tags}, ${mappedLanguage} lyrics only. Theme: ${theme}. ${negative} Natural outro, fade out.`;
+    }
 
     return {
       prompt: promptText,

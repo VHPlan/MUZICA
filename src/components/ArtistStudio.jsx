@@ -28,7 +28,7 @@ const PRESETS = [
   { id: 'petrecere', icon: '🥂', label: 'Petrecere', settings: { genre: 'Manele', subgenre: 'Petrecere', instruments: ['Tarabană', 'Acordeon'], tempo: 'Rapid', energy: 100, voice: 'Masculină', atmosphere: 'Petrecere' } }
 ];
 
-export default function ArtistStudio() {
+export default function ArtistStudio({ startGlobalGeneration, isGenerating }) {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -45,6 +45,7 @@ export default function ArtistStudio() {
   const [atmosphere, setAtmosphere] = useState('');
   const [language, setLanguage] = useState('Română');
   const [theme, setTheme] = useState('');
+  const [speedMode, setSpeedMode] = useState('Calitate Maximă');
   
   const [audioUrl, setAudioUrl] = useState('');
   const [songTitle, setSongTitle] = useState('');
@@ -105,67 +106,18 @@ export default function ArtistStudio() {
     return null;
   };
 
-  const pollTaskStatus = async (taskId, apiKey, startTime) => {
-    if (Date.now() - startTime > 6 * 60 * 1000) {
-      alert('Eroare Timeout.');
-      setLoading(false);
-      return;
-    }
-
-    try {
-      const response = await fetch(`https://api.piapi.ai/api/v1/task/${taskId}`, { headers: { 'x-api-key': apiKey } });
-      if (!response.ok) throw new Error('Eroare server.');
-      const data = await response.json();
-      const actualData = data.data || data;
-
-      if (actualData.status === 'completed') {
-        setProgress(100);
-        setStatusText('Hitul este gata!');
-        
-        const finalUrl = actualData.output?.songs?.[0]?.song_path || actualData.output?.audio_url || findMediaUrl(data);
-        const finalTitle = actualData.output?.songs?.[0]?.title || actualData.output?.title || `AI Hit - ${genre}`;
-        
-        if (finalUrl) {
-          setAudioUrl(finalUrl);
-          setSongTitle(finalTitle);
-          setStep(6);
-          
-          const existingLibrary = JSON.parse(localStorage.getItem('muzica_ai_library') || '[]');
-          const newSong = { id: Date.now().toString(), title: finalTitle, artist: 'AI Virtual Artist', genre: `${genre} ${subgenre}`, url: finalUrl, date: new Date().toLocaleDateString('ro-RO') };
-          localStorage.setItem('muzica_ai_library', JSON.stringify([newSong, ...existingLibrary]));
-        } else {
-          alert('Eroare Critică: Lipsă link audio.');
-        }
-        setLoading(false);
-      } else if (actualData.status === 'failed') {
-        alert('Generare eșuată. Motiv: ' + (actualData.error?.message || 'Eroare internă.'));
-        setLoading(false);
-      } else {
-        setTimeout(() => pollTaskStatus(taskId, apiKey, startTime), 5000);
-      }
-    } catch (err) {
-      alert('Eroare rețea: ' + err.message);
-      setLoading(false);
-    }
-  };
-
   const handleGenerate = async () => {
     const apiKey = localStorage.getItem('piapi_key');
     if (!apiKey) { alert("Introduce cheia API în Setări!"); return; }
     
-    setLoading(true);
-    setProgress(5);
-    setStatusText('Conectare API...');
-
-    try {
-      const settings = { genre, subgenre, energy, tempo, instruments, voice, atmosphere, language, theme };
-      const { taskId, payloadSent } = await generateMusicTask(settings, provider, apiKey);
-      setLastPayload(payloadSent);
-      setTimeout(() => pollTaskStatus(taskId, apiKey, Date.now()), 5000);
-    } catch (error) {
-      alert(error.message);
-      setLoading(false);
+    if (isGenerating) {
+      alert("O melodie este deja în curs de generare! Așteaptă finalizarea ei.");
+      return;
     }
+
+    const settings = { genre, subgenre, energy, tempo, instruments, voice, atmosphere, language, theme, speedMode };
+    startGlobalGeneration(settings, provider, apiKey);
+    setStep(6);
   };
 
   const handleDownload = async () => {
@@ -185,50 +137,44 @@ export default function ArtistStudio() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="glass-panel" style={{ padding: '60px 40px', minHeight: '400px', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-        <h2 style={{ fontSize: '1.5rem', marginBottom: '20px', color: 'var(--text-main)', display: 'flex', alignItems: 'center', gap: '10px' }}>
-          <div style={{ width: '20px', height: '20px', borderRadius: '50%', border: '3px solid var(--primary)', borderTopColor: 'transparent', animation: 'spin 1s linear infinite' }}></div>
-          {statusText}
-        </h2>
-        <div className="progress-container" style={{ maxWidth: '400px', width: '100%', height: '12px', background: 'rgba(255,255,255,0.05)', borderRadius: '100px' }}>
-          <div className="progress-bar" style={{ width: `${progress}%`, height: '100%', background: 'linear-gradient(90deg, var(--primary), var(--accent))', borderRadius: '100px', transition: 'width 0.5s ease' }}></div>
-        </div>
-      </div>
-    );
-  }
-
   if (step === 6) {
     return (
       <div style={{ animation: 'fadeIn 0.5s' }} className="glass-panel">
-        <div style={{ padding: '40px', maxWidth: '600px', margin: '0 auto' }}>
-          <div style={{ display: 'flex', gap: '30px', marginBottom: '40px', alignItems: 'center' }}>
-            <div style={{ width: '180px', height: '180px', background: 'linear-gradient(135deg, var(--primary), var(--accent))', borderRadius: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 20px 40px rgba(139,92,246,0.3)' }}>
-              <Disc3 size={80} color="#fff" />
+        <div style={{ padding: '40px', maxWidth: '600px', margin: '0 auto', textAlign: 'center' }}>
+          
+          {isGenerating ? (
+            <div style={{ padding: '40px 0' }}>
+              <div style={{ width: '60px', height: '60px', borderRadius: '50%', border: '4px solid rgba(139, 92, 246, 0.3)', borderTopColor: 'var(--primary)', animation: 'spin 1s linear infinite', margin: '0 auto 24px auto' }}></div>
+              <h2 style={{ fontSize: '2rem', marginBottom: '16px' }}>Se procesează hitul tău...</h2>
+              <p style={{ color: 'var(--text-muted)', fontSize: '1.2rem', marginBottom: '32px' }}>
+                Poți părăsi această pagină. Vei fi notificat când piesa este gata și va apărea în Biblioteca ta!
+              </p>
+              <button className="btn-secondary" onClick={() => setStep(1)}>Creează o melodie nouă între timp</button>
             </div>
-            <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-              <h2 style={{ fontSize: '2.5rem', margin: '0 0 10px 0', lineHeight: 1.2 }}>{songTitle}</h2>
-              <p style={{ fontSize: '1.3rem', color: 'var(--text-muted)' }}>AI Virtual Artist</p>
-            </div>
-          </div>
-          
-          <audio controls src={audioUrl} style={{ width: '100%', marginBottom: '30px', borderRadius: '12px' }}></audio>
-          
-          <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
-            <button onClick={handleDownload} className="btn-primary" style={{ flex: 2, padding: '16px' }}><Download size={20} /> Download MP3</button>
-            <button className="btn-secondary" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}><Heart size={20} /> Salvează</button>
-          </div>
-          
-          <button 
-            className="btn-primary glow-btn" 
-            style={{ width: '100%', marginTop: '20px', padding: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }} 
-            onClick={() => { setStep(5); setAudioUrl(''); handleGenerate(); }}
-          >
-            <Zap size={20} /> Generează din nou cu aceleași setări
-          </button>
+          ) : (
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', marginBottom: '24px', color: 'var(--success)' }}>
+                <CheckCircle size={40} />
+                <h2 style={{ fontSize: '2rem', margin: 0 }}>Gata! Verifică Biblioteca.</h2>
+              </div>
+              <p style={{ color: 'var(--text-muted)', fontSize: '1.2rem', marginBottom: '32px' }}>
+                Ultima ta creație a fost salvată cu succes. Poți începe o nouă melodie sau poți asculta capodopera în tab-ul <strong>Biblioteca Mea</strong>.
+              </p>
+              
+              <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
+                <button 
+                  className="btn-primary glow-btn" 
+                  style={{ width: '100%', padding: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }} 
+                  onClick={() => { setStep(5); }}
+                >
+                  <Zap size={20} /> Modifică setările și generează din nou
+                </button>
 
-          <button className="btn-secondary" style={{ width: '100%', marginTop: '16px', border: 'none', background: 'transparent', textDecoration: 'underline' }} onClick={() => { setStep(1); setAudioUrl(''); }}>Creează un alt hit (de la zero)</button>
+                <button className="btn-secondary" style={{ width: '100%', marginTop: '16px', border: 'none', background: 'transparent', textDecoration: 'underline' }} onClick={() => setStep(1)}>Creează un alt hit de la zero</button>
+              </div>
+            </div>
+          )}
+
         </div>
       </div>
     );
@@ -368,6 +314,23 @@ export default function ArtistStudio() {
             </div>
           </div>
 
+          <div style={{ marginBottom: '40px' }}>
+            <h3 style={{ marginBottom: '16px', color: 'var(--text-muted)' }}>Mod Generare:</h3>
+            <div style={{ display: 'flex', gap: '16px' }}>
+              {['Rapid', 'Calitate Maximă'].map(m => (
+                <div 
+                  key={m} onClick={() => setSpeedMode(m)}
+                  style={{ flex: 1, background: speedMode === m ? 'rgba(139,92,246,0.3)' : 'rgba(0,0,0,0.2)', border: `1px solid ${speedMode === m ? 'var(--primary)' : 'var(--border-glass)'}`, padding: '16px', borderRadius: '12px', cursor: 'pointer', textAlign: 'center' }}
+                >
+                  <div style={{ fontWeight: 600 }}>{m}</div>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '4px' }}>
+                    {m === 'Rapid' ? 'Prompt mai scurt. Polling mai agresiv.' : 'Prompt complet. Calitate nativă.'}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
           <div>
             <h3 style={{ marginBottom: '16px', color: 'var(--text-muted)' }}>Atmosferă:</h3>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '12px' }}>
@@ -417,6 +380,10 @@ export default function ArtistStudio() {
             <div style={{ background: 'rgba(0,0,0,0.3)', padding: '20px', borderRadius: '12px', border: '1px solid var(--border-glass)' }}>
               <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '4px' }}>Voce & Limbă</div>
               <div style={{ fontSize: '1.2rem', fontWeight: 600 }}>{voice} ({language})</div>
+            </div>
+            <div style={{ background: 'rgba(0,0,0,0.3)', padding: '20px', borderRadius: '12px', border: '1px solid var(--border-glass)' }}>
+              <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '4px' }}>Mod Generare</div>
+              <div style={{ fontSize: '1.2rem', fontWeight: 600, color: speedMode === 'Rapid' ? 'var(--accent)' : 'var(--primary)' }}>{speedMode}</div>
             </div>
             <div style={{ background: 'rgba(0,0,0,0.3)', padding: '20px', borderRadius: '12px', border: '1px solid var(--border-glass)' }}>
               <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '4px' }}>Dinamică</div>

@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import ArtistStudio from './components/ArtistStudio';
 import Settings from './components/Settings';
 import './App.css'; 
-import { Music, Settings as SettingsIcon, Home, Headphones, Trophy, Trash2, Play, Download } from 'lucide-react';
+import { Music, Settings as SettingsIcon, Home, Headphones, Trophy, Trash2, Download, CheckCircle, Loader } from 'lucide-react';
+import { generateMusicTask } from './services/AIProvider';
 
 function HeroSection({ onStart }) {
   return (
@@ -20,13 +21,13 @@ function HeroSection({ onStart }) {
   );
 }
 
-function Library() {
+function Library({ libraryUpdated }) {
   const [songs, setSongs] = useState([]);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const saved = JSON.parse(localStorage.getItem('muzica_ai_library') || '[]');
     setSongs(saved);
-  }, []);
+  }, [libraryUpdated]);
 
   const handleDelete = (id) => {
     const updated = songs.filter(s => s.id !== id);
@@ -49,11 +50,7 @@ function Library() {
                   <h3 style={{ margin: '0 0 4px 0', fontSize: '1.2rem', color: 'var(--text-main)' }}>{song.title}</h3>
                   <p style={{ margin: 0, color: 'var(--primary)', fontSize: '0.9rem' }}>{song.artist}</p>
                 </div>
-                <button 
-                  onClick={() => handleDelete(song.id)}
-                  style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '4px' }}
-                  title="Șterge piesa"
-                >
+                <button onClick={() => handleDelete(song.id)} style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '4px' }} title="Șterge piesa">
                   <Trash2 size={18} />
                 </button>
               </div>
@@ -65,12 +62,7 @@ function Library() {
               
               <audio controls src={song.url} style={{ width: '100%', height: '36px' }}></audio>
               
-              <a 
-                href={song.url} 
-                target="_blank" 
-                rel="noreferrer"
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '8px', background: 'rgba(139, 92, 246, 0.2)', color: 'var(--text-main)', borderRadius: '8px', textDecoration: 'none', fontSize: '0.9rem', transition: '0.2s' }}
-              >
+              <a href={song.url} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', padding: '8px', background: 'rgba(139, 92, 246, 0.2)', color: 'var(--text-main)', borderRadius: '8px', textDecoration: 'none', fontSize: '0.9rem', transition: '0.2s' }}>
                 <Download size={16} /> Descarcă Fișierul
               </a>
             </div>
@@ -92,6 +84,10 @@ function TopHits() {
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('home');
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generationProgress, setGenerationProgress] = useState(0);
+  const [notification, setNotification] = useState(null);
+  const [libraryCounter, setLibraryCounter] = useState(0);
 
   const tabs = [
     { id: 'home', label: 'Home', icon: Home },
@@ -100,6 +96,85 @@ export default function App() {
     { id: 'tophits', label: 'Top Hituri', icon: Trophy },
     { id: 'settings', label: 'Cont', icon: SettingsIcon }
   ];
+
+  const findMediaUrl = (obj) => {
+    if (typeof obj === 'string' && obj.startsWith('http') && (obj.includes('.mp3') || obj.includes('.mp4') || obj.includes('.wav'))) return obj;
+    if (typeof obj !== 'object' || obj === null) return null;
+    for (let key in obj) {
+      if (typeof obj[key] === 'string' && obj[key].startsWith('http') && (key.includes('url') || key.includes('link') || key.includes('audio') || key.includes('video'))) return obj[key];
+      const res = findMediaUrl(obj[key]);
+      if (res) return res;
+    }
+    return null;
+  };
+
+  const pollTaskStatus = async (taskId, apiKey, startTime, settings) => {
+    // Timeout strict de 5 minute
+    if (Date.now() - startTime > 5 * 60 * 1000) {
+      setIsGenerating(false);
+      setNotification({ type: 'error', message: 'Generarea a expirat (Timeout de 5 minute).' });
+      setTimeout(() => setNotification(null), 5000);
+      return;
+    }
+
+    try {
+      const response = await fetch(`https://api.piapi.ai/api/v1/task/${taskId}`, { headers: { 'x-api-key': apiKey } });
+      if (!response.ok) throw new Error('Eroare server.');
+      const data = await response.json();
+      const actualData = data.data || data;
+
+      if (actualData.status === 'completed') {
+        const finalUrl = actualData.output?.songs?.[0]?.song_path || actualData.output?.audio_url || findMediaUrl(data);
+        const finalTitle = actualData.output?.songs?.[0]?.title || actualData.output?.title || `AI Hit - ${settings.genre}`;
+        
+        if (finalUrl) {
+          const existingLibrary = JSON.parse(localStorage.getItem('muzica_ai_library') || '[]');
+          const newSong = { id: Date.now().toString(), title: finalTitle, artist: 'AI Virtual Artist', genre: `${settings.genre} ${settings.subgenre}`, url: finalUrl, date: new Date().toLocaleDateString('ro-RO') };
+          localStorage.setItem('muzica_ai_library', JSON.stringify([newSong, ...existingLibrary]));
+          
+          setLibraryCounter(prev => prev + 1);
+          setNotification({ type: 'success', message: `Piesa "${finalTitle}" este gata și salvată în Bibliotecă!` });
+        } else {
+          setNotification({ type: 'error', message: 'Eroare Critică: Lipsă link audio.' });
+        }
+        setIsGenerating(false);
+        setGenerationProgress(100);
+        setTimeout(() => setNotification(null), 7000);
+      } else if (actualData.status === 'failed') {
+        setNotification({ type: 'error', message: 'Generare eșuată: ' + (actualData.error?.message || 'Eroare internă.') });
+        setIsGenerating(false);
+        setTimeout(() => setNotification(null), 7000);
+      } else {
+        // Smart Polling: progress bar visual logic
+        setGenerationProgress(prev => prev < 95 ? prev + (Math.random() * 8) : 95);
+        
+        // Dacă e modul rapid, verificăm la 3 secunde, altfel la 5 secunde.
+        const pollInterval = settings.speedMode === 'Rapid' ? 3000 : 5000;
+        setTimeout(() => pollTaskStatus(taskId, apiKey, startTime, settings), pollInterval);
+      }
+    } catch (err) {
+      console.error(err);
+      // Nu anulăm generarea la o eroare de fetch temporară, încercăm din nou
+      setTimeout(() => pollTaskStatus(taskId, apiKey, startTime, settings), 5000);
+    }
+  };
+
+  const startGlobalGeneration = async (settings, provider, apiKey) => {
+    setIsGenerating(true);
+    setGenerationProgress(5);
+    setNotification(null);
+    
+    // Auto-redirect to library to show non-blocking nature, or keep them in Studio. We will just show notification.
+    try {
+      const { taskId, payloadSent } = await generateMusicTask(settings, provider, apiKey);
+      // Smart Polling: Prima verificare după 5 secunde.
+      setTimeout(() => pollTaskStatus(taskId, apiKey, Date.now(), settings), 5000);
+    } catch (error) {
+      setIsGenerating(false);
+      setNotification({ type: 'error', message: error.message });
+      setTimeout(() => setNotification(null), 5000);
+    }
+  };
 
   return (
     <div>
@@ -133,10 +208,34 @@ export default function App() {
         </div>
       </nav>
 
+      {/* Global Progress Indicator */}
+      {isGenerating && (
+        <div style={{ position: 'fixed', bottom: '24px', right: '24px', background: 'rgba(15, 23, 42, 0.95)', border: '1px solid var(--primary)', borderRadius: '12px', padding: '16px 24px', zIndex: 999, boxShadow: '0 10px 25px rgba(0,0,0,0.5)', width: '320px', animation: 'slideUp 0.3s' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
+            <Loader size={20} style={{ color: 'var(--primary)', animation: 'spin 2s linear infinite' }} />
+            <h4 style={{ margin: 0, color: 'var(--text-main)', fontSize: '1rem' }}>Generare în curs...</h4>
+          </div>
+          <div style={{ width: '100%', height: '6px', background: 'rgba(255,255,255,0.1)', borderRadius: '10px', overflow: 'hidden' }}>
+            <div style={{ width: `${Math.min(generationProgress, 100)}%`, height: '100%', background: 'linear-gradient(90deg, var(--primary), var(--accent))', transition: 'width 0.5s ease' }}></div>
+          </div>
+          <p style={{ margin: '8px 0 0 0', color: 'var(--text-muted)', fontSize: '0.8rem' }}>
+            Generarea poate dura 1-3 minute, în funcție de serverele AI. Poți continua să navighezi!
+          </p>
+        </div>
+      )}
+
+      {/* Global Notification */}
+      {notification && (
+        <div style={{ position: 'fixed', top: '80px', right: '24px', background: notification.type === 'error' ? 'rgba(220, 38, 38, 0.9)' : 'rgba(16, 185, 129, 0.9)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '8px', padding: '16px 24px', zIndex: 1000, color: '#fff', display: 'flex', alignItems: 'center', gap: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.3)', animation: 'slideDown 0.3s' }}>
+          <CheckCircle size={20} />
+          <span style={{ fontWeight: 500 }}>{notification.message}</span>
+        </div>
+      )}
+
       <main style={{ padding: '40px 20px', maxWidth: '1200px', margin: '0 auto' }}>
         {activeTab === 'home' && <HeroSection onStart={() => setActiveTab('studio')} />}
-        {activeTab === 'studio' && <ArtistStudio />}
-        {activeTab === 'library' && <Library />}
+        {activeTab === 'studio' && <ArtistStudio startGlobalGeneration={startGlobalGeneration} isGenerating={isGenerating} />}
+        {activeTab === 'library' && <Library libraryUpdated={libraryCounter} />}
         {activeTab === 'tophits' && <TopHits />}
         {activeTab === 'settings' && <Settings />}
       </main>
