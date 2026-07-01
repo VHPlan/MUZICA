@@ -65,6 +65,13 @@ Outro with fade out.`;
   if (provider === 'suno') {
     
     // Preset Prompts
+    if (genre === 'Tarabană & Bass TikTok') {
+      return {
+        prompt: `STRICT ROMANIAN ORIENTAL MUSIC ONLY. TikTok Romanian club manele instrumental vibe, dominant darbuka/tarabană rhythm, very deep bass, oriental keyboard riff, fast dance groove, repetitive catchy hook, party atmosphere, Romanian lyrics only. No jazz, no rock, no pop, no EDM, no trap, no hip-hop. Natural outro, fade out.`,
+        tags: 'tiktok, club manele, tarabana, bass, oriental'
+      };
+    }
+
     if (genre === 'Tarabană & Bass') {
       return {
         prompt: `${GLOBAL_PREFIX}\nDominant darbuka/tarabană rhythm, deep bass, oriental keyboard riff, fast dance groove, repetitive catchy hook, Romanian party atmosphere. Theme: ${theme}. Natural outro, fade out.`,

@@ -26,7 +26,7 @@ const INSTRUMENTS = [
 ];
 
 const PRESETS = [
-  { id: 'tiktok_club', icon: '🔥', label: 'TikTok Club Manele', settings: { genre: 'Manele de club', instruments: ['Tarabană / Darbuka', 'Bass puternic', 'Clape orientale'], tempo: 'Rapid', energy: 100, voice: 'Masculină', atmosphere: 'Petrecere' } },
+  { id: 'tiktok_club', icon: '🔥', label: 'Tarabană & Bass TikTok', settings: { genre: 'Tarabană & Bass TikTok', instruments: ['Tarabană / Darbuka', 'Bass puternic', 'Clape orientale'], tempo: 'Rapid', energy: 100, voice: 'Masculină', atmosphere: 'Club / Petrecere' } },
   { id: 'tara_bass', icon: '🥁', label: 'Tarabană & Bass', settings: { genre: 'Tarabană & Bass', instruments: ['Tarabană / Darbuka', 'Bass puternic'], tempo: 'Rapid', energy: 95, voice: 'Fără Voce', atmosphere: 'Club' } },
   { id: 'lautareasca', icon: '🎻', label: 'Lăutărească Live', settings: { genre: 'Lăutărească / Țigănească', instruments: ['Acordeon', 'Vioară', 'Țambal'], tempo: 'Mediu', energy: 80, voice: 'Masculină', atmosphere: 'Live Taraf' } },
   { id: 'nunta', icon: '💍', label: 'Nuntă Românească', settings: { genre: 'Nuntă / Chef', instruments: ['Saxofon', 'Clape orientale', 'Tarabană / Darbuka'], tempo: 'Rapid', energy: 90, voice: 'Duo', atmosphere: 'Nuntă' } }
@@ -322,7 +322,7 @@ export default function ArtistStudio({ startGlobalGeneration, activeTasks, goToL
             <div style={{ marginBottom: '40px' }}>
               <h4 style={{ color: 'var(--text-muted)', marginBottom: '16px' }}>Despre ce vrei să fie melodia?</h4>
               <textarea 
-                placeholder="Ex: Despre o iubire pierdută, despre bani și succes, sau despre o noapte la club..."
+                placeholder="Ex: despre bani, valoare, familie, dușmani, dragoste, petrecere, viață grea, succes…"
                 value={theme}
                 onChange={(e) => setTheme(e.target.value)}
                 style={{ width: '100%', height: '120px', padding: '16px', borderRadius: '12px', background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.1)', color: '#fff', fontSize: '1rem', resize: 'none', fontFamily: 'inherit' }}
