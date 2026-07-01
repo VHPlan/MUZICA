@@ -31,7 +31,8 @@ export default function ArtistStudio() {
           return null;
         };
 
-        const songUrl = findMediaUrl(data);
+        // Udio by PiAPI returns the mp3 in data.output.songs[0].song_path
+        const songUrl = data.output?.songs?.[0]?.song_path || findMediaUrl(data);
         
         if (songUrl) {
           setAudioUrl(songUrl);
