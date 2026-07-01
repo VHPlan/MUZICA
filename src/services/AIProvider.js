@@ -84,6 +84,9 @@ export const buildPrompt = (settings, provider = 'suno') => {
   } else if (genre === 'House Bass') {
     genreDirectives = "Modern Romanian oriental slap house, deep bouncy house bassline, punchy 4/4 EDM club beat, electronic synthesizer melodies, high energy dance floor anthem, electronic music.";
     genreTags = "slap house, oriental house, deep bouncy bass, edm, 4/4 beat, club anthem";
+  } else if (genre === 'Reggaeton Spaniol') {
+    genreDirectives = "Authentic Latin Spanish Reggaeton, classic dembow rhythm, deep 808 sub bass, modern latin pop vibes, catchy tropical synthesizer, hot summer club anthem, spanish music style.";
+    genreTags = "spanish reggaeton, dembow, latin pop, heavy sub bass, summer hit, tropical";
   } else {
     genreDirectives = `Romanian ${genre} style, balkan oriental pop.`;
     genreTags = "balkan, oriental, pop";
