@@ -76,7 +76,8 @@ export default function App() {
     return () => clearInterval(interval);
   }, [library]);
 
-  const activeTask = activeTasks.length > 0 ? activeTasks[0] : null;
+  const activeTask = activeTasks.find(t => !t.isBackground) || null;
+  const backgroundTasksCount = activeTasks.filter(t => t.isBackground && t.status === 'pending').length;
 
   return (
     <div style={{ position: 'relative' }}>
@@ -106,8 +107,14 @@ export default function App() {
           <button 
             className={`nav-btn ${activeTab === 'library' ? 'active' : ''}`}
             onClick={() => setActiveTab('library')}
+            style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
           >
-            Bibliotecă
+            Bibliotecă 
+            {backgroundTasksCount > 0 && (
+              <span style={{ background: 'var(--primary)', color: '#fff', fontSize: '0.7rem', padding: '2px 6px', borderRadius: '100px' }}>
+                {backgroundTasksCount}
+              </span>
+            )}
           </button>
         </div>
 
@@ -157,7 +164,10 @@ export default function App() {
         {activeTab === 'create' && (
           <motion.div key="create" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} style={{ padding: '40px 20px', maxWidth: '1200px', margin: '0 auto' }}>
             {activeTask ? (
-              <GenerationScreen task={activeTask} onDismiss={() => setActiveTasks(prev => prev.filter(t => t.id !== activeTask.id))} />
+              <GenerationScreen 
+                task={activeTask} 
+                onDismiss={() => setActiveTasks(prev => prev.map(t => t.id === activeTask.id ? { ...t, isBackground: true } : t))} 
+              />
             ) : (
               <CreationWizard onGenerate={startGlobalGeneration} />
             )}
