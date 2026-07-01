@@ -74,7 +74,7 @@ Outro with fade out.`;
 
   // SUNO FORMAT
   if (provider === 'suno') {
-    const tags = [
+    let tags = [
       `Modern ${mappedLanguage} ${subgenre?.toLowerCase() || ''} ${genre?.toLowerCase() || ''}`,
       ...instruments.map(i => TRANSLATIONS.instruments[i] || i),
       mappedVoice,
