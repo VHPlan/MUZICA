@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Music, Library, Settings2, Play, Disc3 } from 'lucide-react';
+import { Sparkles, Music, Library, Settings2, Play, Disc3, Trash2 } from 'lucide-react';
 import CreationWizard from './components/CreationWizard';
 import GenerationScreen from './components/GenerationScreen';
 import { generateMusicTask, checkTaskStatus } from './services/AIProvider';
@@ -25,6 +25,18 @@ export default function App() {
     });
   };
 
+  const deleteFromLibrary = (trackId, e) => {
+    e.stopPropagation();
+    setLibrary(prev => {
+      const updated = prev.filter(t => t.id !== trackId);
+      localStorage.setItem('ai_music_library', JSON.stringify(updated));
+      return updated;
+    });
+    if (currentTrack?.id === trackId) {
+      setCurrentTrack(null);
+    }
+  };
+
   const startGlobalGeneration = async (settings, provider, apiKey) => {
     let newTask = {
       id: Date.now().toString(),
@@ -39,8 +51,8 @@ export default function App() {
     setActiveTasks(prev => [...prev, newTask]);
     
     try {
-      const taskId = await generateMusicTask(settings, provider, apiKey);
-      setActiveTasks(prev => prev.map(t => t.id === newTask.id ? { ...t, externalId: taskId, progress: 15 } : t));
+      const response = await generateMusicTask(settings, provider, apiKey);
+      setActiveTasks(prev => prev.map(t => t.id === newTask.id ? { ...t, externalId: response.taskId, progress: 15 } : t));
     } catch (err) {
       console.error(err);
       setActiveTasks(prev => prev.map(t => 
@@ -246,6 +258,12 @@ export default function App() {
                       {!track.imageUrl && <div className="hero-mesh" style={{ opacity: 0.5, filter: 'blur(40px)' }} />}
                       <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.3)', transition: 'background 0.3s' }} className="hover-overlay" />
                       <Play size={48} color="#fff" style={{ opacity: 0.8, zIndex: 10 }} />
+                      <button 
+                        onClick={(e) => deleteFromLibrary(track.id, e)}
+                        style={{ position: 'absolute', top: '12px', right: '12px', background: 'rgba(0,0,0,0.5)', border: 'none', color: '#fff', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 20 }}
+                      >
+                        <Trash2 size={18} color="#ef4444" />
+                      </button>
                     </div>
                     <div>
                       <h4 style={{ fontSize: '1.2rem', marginBottom: '4px' }}>{track.title}</h4>
