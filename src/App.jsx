@@ -70,32 +70,22 @@ export default function App() {
           const res = await checkTaskStatus(task.externalId, task.apiKey);
           const data = res.data || res;
           if (data.status === 'completed' || data.status === 'success') {
-            let extractedAudio = '';
-            let extractedVideo = '';
-            let extractedImage = '';
-            
             const resultData = data.data || data;
             
-            const extractFromClip = (clip) => {
-              if (clip?.audio_url) extractedAudio = clip.audio_url;
-              if (clip?.video_url) extractedVideo = clip.video_url;
-              if (clip?.image_url) extractedImage = clip.image_url;
+            // BULLETPROOF RECURSIVE SEARCH FOR URLs
+            const findUrl = (obj, keyName) => {
+              if (!obj || typeof obj !== 'object') return null;
+              if (obj[keyName] && typeof obj[keyName] === 'string' && obj[keyName].startsWith('http')) return obj[keyName];
+              for (const k in obj) {
+                const res = findUrl(obj[k], keyName);
+                if (res) return res;
+              }
+              return null;
             };
 
-            if (Array.isArray(resultData.clips) && resultData.clips.length > 0) {
-              extractFromClip(resultData.clips[0]);
-            } else if (resultData.clips && typeof resultData.clips === 'object') {
-              const keys = Object.keys(resultData.clips);
-              if (keys.length > 0) extractFromClip(resultData.clips[keys[0]]);
-            } else if (resultData.task_result) {
-              extractedAudio = resultData.task_result.audio_url || '';
-              extractedVideo = resultData.task_result.video_url || '';
-              extractedImage = resultData.task_result.image_url || '';
-            } else {
-              extractedAudio = resultData.audio_url || '';
-              extractedVideo = resultData.video_url || '';
-              extractedImage = resultData.image_url || '';
-            }
+            let extractedAudio = findUrl(resultData, 'audio_url') || findUrl(resultData, 'audio_file') || findUrl(resultData, 'file_url') || '';
+            let extractedVideo = findUrl(resultData, 'video_url') || findUrl(resultData, 'video_file') || '';
+            let extractedImage = findUrl(resultData, 'image_url') || findUrl(resultData, 'image_file') || findUrl(resultData, 'cover_url') || '';
 
             const finalTrack = {
               id: task.id,
@@ -109,6 +99,7 @@ export default function App() {
             };
             saveToLibrary(finalTrack);
             setActiveTasks(prev => prev.map(t => t.id === task.id ? { ...t, progress: 100, status: 'completed', finalTrack } : t));
+            setCurrentTrack(finalTrack); // Pop up bottom player instantly
           } else if (data.status === 'failed' || data.status === 'error') {
             setActiveTasks(prev => prev.map(t => t.id === task.id ? { ...t, status: 'error', progress: 100, rawResponse: 'Eroare generare.' } : t));
           } else {

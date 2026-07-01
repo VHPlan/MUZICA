@@ -24,6 +24,7 @@ export default function GenerationScreen({ task, onDismiss }) {
   }
 
   if (isDone) {
+    const track = task.finalTrack || {};
     return (
       <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} style={{ padding: '24px', textAlign: 'center' }}>
         <div className="dash-card" style={{ borderColor: 'rgba(16, 185, 129, 0.3)', background: 'rgba(16, 185, 129, 0.05)' }}>
@@ -32,6 +33,20 @@ export default function GenerationScreen({ task, onDismiss }) {
           <p style={{ fontSize: '1rem', color: 'var(--text-muted)', marginBottom: '24px' }}>
             Noua ta piesă este pregătită și a fost salvată în bibliotecă.
           </p>
+          
+          {/* Quick Play & Download actions */}
+          {track.audioUrl && (
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px', marginBottom: '32px' }}>
+              <audio controls src={track.audioUrl} style={{ width: '100%', maxWidth: '400px', height: '40px' }} />
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <a href={track.audioUrl} download target="_blank" rel="noreferrer" className="btn-secondary" style={{ textDecoration: 'none' }}>Download MP3</a>
+                {track.videoUrl && (
+                  <a href={track.videoUrl} download target="_blank" rel="noreferrer" className="btn-secondary" style={{ textDecoration: 'none' }}>Download MP4</a>
+                )}
+              </div>
+            </div>
+          )}
+
           <button className="btn-primary" onClick={onDismiss}>
             <ChevronLeft size={16} /> Înapoi la Spațiul de Lucru
           </button>
