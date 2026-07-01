@@ -141,7 +141,8 @@ export const generateMusicTask = async (settings, provider, apiKey) => {
       model: model,
       task_type: "generate",
       input: {
-        gpt_description_prompt: promptData.prompt || promptData,
+        prompt: promptData.prompt ? promptData.prompt : (promptData || ""),
+        tags: promptData.tags ? promptData.tags.substring(0, 119) : "",
         title: `AI Hit - ${settings.genre}`,
         make_instrumental: false
       }

@@ -180,7 +180,7 @@ export default function PremiumDashboard({ task, onReset, goToLibrary }) {
               </pre>
             </div>
             <div>
-              <strong>Răspuns PiAPI (Task Creation):</strong>
+              <strong>Răspuns PiAPI:</strong>
               <pre style={{ background: 'rgba(0,0,0,0.3)', padding: '12px', borderRadius: '8px', fontSize: '0.8rem', color: '#34d399' }}>
                 {JSON.stringify(task.rawResponse, null, 2)}
               </pre>

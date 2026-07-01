@@ -91,21 +91,29 @@ export default function ArtistStudio({ startGlobalGeneration, activeTasks, goToL
   return (
     <div className="glass-panel" style={{ padding: '40px', minHeight: '600px' }}>
       {/* Wizard Header */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '40px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '48px' }}>
         <div>
-          <h2 style={{ fontSize: '2rem', margin: '0 0 8px 0', color: 'var(--primary)' }}>Studio Oriental AI</h2>
-          <p style={{ color: 'var(--text-muted)', margin: 0 }}>Configurează parametrii noului tău hit.</p>
+          <h2 style={{ fontSize: '2.5rem', margin: '0 0 8px 0', color: '#fff', letterSpacing: '-0.02em' }}>Studio AI</h2>
+          <p style={{ color: 'var(--text-muted)', margin: 0, fontSize: '1.1rem' }}>Configurează parametrii noului tău hit.</p>
         </div>
-        <div style={{ display: 'flex', gap: '8px' }}>
-          {[1, 2, 3, 4, 5].map(s => (
-            <div key={s} style={{ 
-              width: '40px', height: '40px', borderRadius: '50%', 
-              background: step === s ? 'var(--primary)' : step > s ? 'var(--success)' : 'rgba(255,255,255,0.1)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontWeight: 600, color: step === s || step > s ? '#fff' : 'var(--text-muted)'
-            }}>
-              {step > s ? '✓' : s}
-            </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+          {[1, 2, 3, 4, 5].map((s, idx) => (
+            <React.Fragment key={s}>
+              <div style={{ 
+                width: step === s ? '48px' : '40px', 
+                height: step === s ? '48px' : '40px', 
+                borderRadius: '50%', 
+                background: step === s ? 'linear-gradient(135deg, var(--primary), var(--accent))' : step > s ? 'var(--success)' : 'rgba(255,255,255,0.05)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontWeight: 700, color: step === s || step > s ? '#fff' : 'var(--text-muted)',
+                boxShadow: step === s ? '0 0 20px rgba(139, 92, 246, 0.4)' : 'none',
+                transition: 'all 0.4s cubic-bezier(0.4, 0, 0.2, 1)',
+                border: step === s ? 'none' : '1px solid var(--border-glass)'
+              }}>
+                {step > s ? <CheckCircle size={20} color="#fff" /> : s}
+              </div>
+              {idx < 4 && <div style={{ width: '40px', height: '2px', background: step > idx + 1 ? 'var(--success)' : 'rgba(255,255,255,0.1)', transition: 'background 0.4s' }} />}
+            </React.Fragment>
           ))}
         </div>
       </div>
@@ -124,17 +132,25 @@ export default function ArtistStudio({ startGlobalGeneration, activeTasks, goToL
                     key={g} 
                     onClick={() => setGenre(g)}
                     style={{ 
-                      padding: '20px', 
-                      borderRadius: '12px',
-                      background: genre === g ? 'rgba(139, 92, 246, 0.3)' : 'rgba(0,0,0,0.2)',
-                      border: `2px solid ${genre === g ? 'var(--primary)' : 'transparent'}`,
+                      padding: '24px 16px', 
+                      borderRadius: '16px',
+                      background: genre === g ? 'rgba(139, 92, 246, 0.2)' : 'rgba(0,0,0,0.3)',
+                      border: `1px solid ${genre === g ? 'var(--primary)' : 'var(--border-glass)'}`,
                       color: genre === g ? '#fff' : 'var(--text-muted)',
                       cursor: 'pointer',
                       fontSize: '1rem',
                       fontWeight: 500,
-                      transition: 'all 0.2s'
+                      transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
+                      boxShadow: genre === g ? '0 8px 20px rgba(139, 92, 246, 0.2)' : 'none',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: '12px'
                     }}
+                    onMouseEnter={(e) => { if(genre !== g) e.currentTarget.style.background = 'rgba(255,255,255,0.05)' }}
+                    onMouseLeave={(e) => { if(genre !== g) e.currentTarget.style.background = 'rgba(0,0,0,0.3)' }}
                   >
+                    <Disc3 size={24} color={genre === g ? 'var(--accent)' : 'var(--text-muted)'} style={{ transition: 'all 0.3s' }} />
                     {g}
                   </button>
                 ))}
@@ -247,17 +263,19 @@ export default function ArtistStudio({ startGlobalGeneration, activeTasks, goToL
             <h3 style={{ fontSize: '1.5rem', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '10px' }}><Sliders /> Dinamică și Mod</h3>
             
             <div style={{ marginBottom: '40px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px' }}>
-                <h4 style={{ color: 'var(--text-muted)', margin: 0 }}>Nivel de Energie</h4>
-                <span style={{ color: 'var(--primary)', fontWeight: 700 }}>{energy}%</span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '16px', alignItems: 'center' }}>
+                <h4 style={{ color: 'var(--text-muted)', margin: 0, fontSize: '1.1rem' }}>Nivel de Energie</h4>
+                <div style={{ background: 'rgba(139, 92, 246, 0.2)', padding: '4px 12px', borderRadius: '100px', color: 'var(--primary)', fontWeight: 700 }}>{energy}%</div>
               </div>
-              <input 
-                type="range" 
-                min="10" max="100" 
-                value={energy} 
-                onChange={(e) => setEnergy(e.target.value)}
-                style={{ width: '100%', accentColor: 'var(--primary)', cursor: 'pointer' }}
-              />
+              <div style={{ padding: '24px', background: 'rgba(0,0,0,0.3)', borderRadius: '16px', border: '1px solid var(--border-glass)' }}>
+                <input 
+                  type="range" 
+                  min="10" max="100" 
+                  value={energy} 
+                  onChange={(e) => setEnergy(e.target.value)}
+                  style={{ width: '100%', accentColor: 'var(--primary)', cursor: 'pointer' }}
+                />
+              </div>
             </div>
 
             <div style={{ marginBottom: '40px' }}>
@@ -349,29 +367,32 @@ export default function ArtistStudio({ startGlobalGeneration, activeTasks, goToL
             <h3 style={{ fontSize: '1.5rem', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '10px' }}><Code /> Verificare Finală</h3>
             
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '40px' }}>
-              <div style={{ background: 'rgba(0,0,0,0.3)', padding: '20px', borderRadius: '12px', border: '1px solid var(--border-glass)' }}>
-                <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '4px' }}>Gen Principal</div>
-                <div style={{ fontSize: '1.2rem', fontWeight: 600 }}>{genre}</div>
+              <div style={{ background: 'rgba(0,0,0,0.3)', padding: '24px', borderRadius: '20px', border: '1px solid var(--border-glass)', transition: 'all 0.3s' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '8px' }}><Music size={16}/> Gen Principal</div>
+                <div style={{ fontSize: '1.3rem', fontWeight: 600, color: '#fff' }}>{genre}</div>
               </div>
-              <div style={{ background: 'rgba(0,0,0,0.3)', padding: '20px', borderRadius: '12px', border: '1px solid var(--border-glass)' }}>
-                <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '4px' }}>Voce</div>
-                <div style={{ fontSize: '1.2rem', fontWeight: 600 }}>{voice}</div>
+              <div style={{ background: 'rgba(0,0,0,0.3)', padding: '24px', borderRadius: '20px', border: '1px solid var(--border-glass)', transition: 'all 0.3s' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '8px' }}><Mic2 size={16}/> Voce</div>
+                <div style={{ fontSize: '1.3rem', fontWeight: 600, color: '#fff' }}>{voice}</div>
               </div>
-              <div style={{ background: 'rgba(0,0,0,0.3)', padding: '20px', borderRadius: '12px', border: '1px solid var(--border-glass)' }}>
-                <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '4px' }}>Mod Generare</div>
-                <div style={{ fontSize: '1.2rem', fontWeight: 600, color: speedMode === 'Rapid' ? 'var(--accent)' : 'var(--primary)' }}>{speedMode}</div>
+              <div style={{ background: 'rgba(0,0,0,0.3)', padding: '24px', borderRadius: '20px', border: '1px solid var(--border-glass)', transition: 'all 0.3s' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '8px' }}><Settings2 size={16}/> Mod Generare</div>
+                <div style={{ fontSize: '1.3rem', fontWeight: 600, color: speedMode === 'Rapid' ? 'var(--accent)' : 'var(--primary)' }}>{speedMode}</div>
               </div>
-              <div style={{ background: 'rgba(0,0,0,0.3)', padding: '20px', borderRadius: '12px', border: '1px solid var(--border-glass)' }}>
-                <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '4px' }}>Dinamică</div>
-                <div style={{ fontSize: '1.1rem' }}>Tempo: {tempo} | Energie: {energy}%</div>
+              <div style={{ background: 'rgba(0,0,0,0.3)', padding: '24px', borderRadius: '20px', border: '1px solid var(--border-glass)', transition: 'all 0.3s' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '8px' }}><Sliders size={16}/> Dinamică</div>
+                <div style={{ fontSize: '1.1rem', color: '#fff' }}>Tempo: {tempo} <br/> Energie: {energy}%</div>
               </div>
-              <div style={{ background: 'rgba(0,0,0,0.3)', padding: '20px', borderRadius: '12px', border: '1px solid var(--border-glass)', gridColumn: '1 / -1' }}>
-                <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '4px' }}>Instrumente</div>
-                <div style={{ fontSize: '1.1rem' }}>{instruments.join(', ') || 'Niciunul specificat'}</div>
+              <div style={{ background: 'rgba(0,0,0,0.3)', padding: '24px', borderRadius: '20px', border: '1px solid var(--border-glass)', gridColumn: '1 / -1', transition: 'all 0.3s' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '12px' }}><Disc3 size={16}/> Instrumente Orientale</div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                  {instruments.map(i => <span key={i} style={{ background: 'rgba(139,92,246,0.15)', color: '#fff', padding: '6px 12px', borderRadius: '8px', fontSize: '0.9rem' }}>{i}</span>)}
+                  {instruments.length === 0 && <span style={{ color: 'var(--text-muted)' }}>Niciunul specificat</span>}
+                </div>
               </div>
-              <div style={{ background: 'rgba(0,0,0,0.3)', padding: '20px', borderRadius: '12px', border: '1px solid var(--border-glass)', gridColumn: '1 / -1' }}>
-                <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '4px' }}>Temă Versuri</div>
-                <div style={{ fontSize: '1.1rem', fontStyle: 'italic' }}>"{theme}"</div>
+              <div style={{ background: 'rgba(0,0,0,0.3)', padding: '24px', borderRadius: '20px', border: '1px solid var(--border-glass)', gridColumn: '1 / -1', transition: 'all 0.3s' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-muted)', fontSize: '0.9rem', marginBottom: '8px' }}><FileText size={16}/> Temă Versuri</div>
+                <div style={{ fontSize: '1.1rem', fontStyle: 'italic', color: '#e2e8f0', lineHeight: 1.5 }}>"{theme}"</div>
               </div>
             </div>
             
