@@ -173,39 +173,46 @@ export default function ArtistStudio() {
       return;
     }
     
-    // Custom Mode Implementation
     const genreData = GENRE_RULES_EN[genre] || { style: 'music', negative: 'noise' };
-    const langTag = language !== 'Română' ? `${language} only.` : 'Romanian only.';
+    const langTag = language !== 'Română' ? `${language} only` : 'Romanian only';
     
-    // Exact requested Final Prompt Essay format
-    const essayPrompt = `STYLE:
-${genreData.style}
+    // Convert CSV lists to dot-separated lines per user specs
+    const styleLines = genreData.style.split(',').map(s => s.trim().charAt(0).toUpperCase() + s.trim().slice(1) + '.').join('\\n');
+    const negativeLines = genreData.negative.split(',').map(s => 'No ' + s.trim() + '.').join('\\n');
 
-NEGATIVE STYLE:
-${genreData.negative}
+    // Create the exact 4-section prompt layout requested by the user
+    const finalEssay = `MUSIC STYLE:
+${styleLines}
+${negativeLines}
 
-LYRICS LANGUAGE:
-${langTag}
+MOOD:
+${mood.charAt(0).toUpperCase() + mood.slice(1)}.
 
 THEME:
-${prompt} (Please interpret this theme in English but sing in ${language})
-
-IMPORTANT:
-The selected genre is mandatory. Do not change the genre. Do not generate rock unless Rock is selected. The user prompt cannot override the selected genre.
+${prompt}
+(IMPORTANT: the theme must not exceed 30% of the focus. Do not allow theme to override music style)
 
 STRUCTURE:
-Intro, verse, chorus, verse, chorus, instrumental solo, final chorus repeated twice, 15-20 second outro, smooth fade-out. Do not end abruptly.`;
+Intro.
+Verse.
+Chorus.
+Verse.
+Chorus.
+Instrumental solo.
+Final chorus repeated twice.
+20 second instrumental outro.
+Smooth fade out.
 
-    // Warn if PiAPI might ignore separate custom fields (developer console as requested)
-    console.warn("Provider does not support strict genre control. Results may ignore selected genre if essay overrides tags.");
+Lyrics language:
+${langTag}.`;
 
     const payload = {
       model: "music-u",
       task_type: "generate_music",
       input: {
-        prompt: `${genreData.style}, ${voice} vocal, mood ${mood}, intro, verse, chorus, instrumental solo, outro, fade out`, // Manual tags parameter
-        negative_tags: `${genreData.negative}, abrupt ending, sudden stop`, // Strict negative parameter
-        gpt_description_prompt: essayPrompt, // The essay structure the user strictly requested
+        gpt_description_prompt: finalEssay, 
+        prompt: `${genreData.style}`, // Keep tags for custom mode backup
+        negative_tags: `${genreData.negative}`, 
         lyrics_type: "generate"
       }
     };
@@ -213,7 +220,7 @@ Intro, verse, chorus, verse, chorus, instrumental solo, final chorus repeated tw
     setLastPayload(payload);
     setLoading(true);
     setProgress(5);
-    setStatusText('Inițializare Custom Mode AI...');
+    setStatusText('Inițializare 4-Section Prompt...');
 
     try {
       const response = await fetch('https://api.piapi.ai/api/v1/task', {
@@ -268,7 +275,7 @@ Intro, verse, chorus, verse, chorus, instrumental solo, final chorus repeated tw
         <div className="progress-container" style={{ maxWidth: '400px', width: '100%', height: '12px', background: 'rgba(255,255,255,0.05)', borderRadius: '100px' }}>
           <div className="progress-bar" style={{ width: `${progress}%`, height: '100%', background: 'linear-gradient(90deg, var(--primary), var(--accent))', borderRadius: '100px', transition: 'width 0.5s ease' }}></div>
         </div>
-        <p style={{ marginTop: '24px', color: 'var(--text-muted)', fontSize: '1.1rem' }}>{Math.round(progress)}% - Procesare Custom Mode</p>
+        <p style={{ marginTop: '24px', color: 'var(--text-muted)', fontSize: '1.1rem' }}>{Math.round(progress)}% - Procesare AI (4-Section Model)</p>
       </div>
     );
   }
@@ -400,7 +407,7 @@ Intro, verse, chorus, verse, chorus, instrumental solo, final chorus repeated tw
           <div style={{ marginTop: '20px', padding: '16px', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid var(--border-glass)' }}>
             <h4 style={{ color: 'var(--text-muted)', marginBottom: '8px' }}>💡 Notă importantă:</h4>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: 1.4 }}>
-              Scrie doar subiectul melodiei aici. Sistemul va impune automat genul tău muzical ({genre || 'neselectat'}) folosind PiAPI Custom Mode.
+              Scrie doar subiectul melodiei aici. Sistemul va împărți totul în secțiuni (MUSIC STYLE, MOOD, THEME, STRUCTURE) conform noilor reguli avansate.
             </p>
           </div>
           
@@ -415,7 +422,7 @@ Intro, verse, chorus, verse, chorus, instrumental solo, final chorus repeated tw
           
           {devMode && lastPayload && (
             <div style={{ marginTop: '16px', padding: '16px', background: 'rgba(0,0,0,0.5)', borderRadius: '8px', border: '1px dashed var(--text-muted)' }}>
-              <div style={{ color: 'var(--success)', fontSize: '0.8rem', marginBottom: '8px' }}>PAYLOAD EXACT TRIMIS CĂTRE PiAPI (CUSTOM MODE):</div>
+              <div style={{ color: 'var(--success)', fontSize: '0.8rem', marginBottom: '8px' }}>PAYLOAD 4-SECTION CĂTRE AI:</div>
               <pre style={{ color: '#fff', fontSize: '0.85rem', whiteSpace: 'pre-wrap', fontFamily: 'monospace', margin: 0 }}>
                 {JSON.stringify(lastPayload, null, 2)}
               </pre>
