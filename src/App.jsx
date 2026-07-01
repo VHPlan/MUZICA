@@ -1,13 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Sparkles, Music, Library, Settings2, Play, Disc3, Trash2 } from 'lucide-react';
+import { Sparkles, Library, Play, Trash2, Plus, HardDrive } from 'lucide-react';
 import CreationWizard from './components/CreationWizard';
 import GenerationScreen from './components/GenerationScreen';
 import { generateMusicTask, checkTaskStatus } from './services/AIProvider';
 import './App.css';
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState('home');
   const [activeTasks, setActiveTasks] = useState([]);
   const [library, setLibrary] = useState([]);
   const [currentTrack, setCurrentTrack] = useState(null);
@@ -77,32 +76,22 @@ export default function App() {
             
             const resultData = data.data || data;
             
-            // Helper to extract from a clip object
             const extractFromClip = (clip) => {
               if (clip?.audio_url) extractedAudio = clip.audio_url;
               if (clip?.video_url) extractedVideo = clip.video_url;
               if (clip?.image_url) extractedImage = clip.image_url;
             };
 
-            // 1. If clips is an array
             if (Array.isArray(resultData.clips) && resultData.clips.length > 0) {
               extractFromClip(resultData.clips[0]);
-            } 
-            // 2. If clips is an object (Dictionary)
-            else if (resultData.clips && typeof resultData.clips === 'object') {
+            } else if (resultData.clips && typeof resultData.clips === 'object') {
               const keys = Object.keys(resultData.clips);
-              if (keys.length > 0) {
-                extractFromClip(resultData.clips[keys[0]]);
-              }
-            } 
-            // 3. Fallback task_result
-            else if (resultData.task_result) {
+              if (keys.length > 0) extractFromClip(resultData.clips[keys[0]]);
+            } else if (resultData.task_result) {
               extractedAudio = resultData.task_result.audio_url || '';
               extractedVideo = resultData.task_result.video_url || '';
               extractedImage = resultData.task_result.image_url || '';
-            } 
-            // 4. Flat structure
-            else {
+            } else {
               extractedAudio = resultData.audio_url || '';
               extractedVideo = resultData.video_url || '';
               extractedImage = resultData.image_url || '';
@@ -116,20 +105,19 @@ export default function App() {
               audioUrl: extractedAudio,
               videoUrl: extractedVideo,
               imageUrl: extractedImage,
-              rawResponse: data // store full response for debug just in case
+              rawResponse: data
             };
             saveToLibrary(finalTrack);
             setActiveTasks(prev => prev.map(t => t.id === task.id ? { ...t, progress: 100, status: 'completed', finalTrack } : t));
           } else if (data.status === 'failed' || data.status === 'error') {
             setActiveTasks(prev => prev.map(t => t.id === task.id ? { ...t, status: 'error', progress: 100, rawResponse: 'Eroare generare.' } : t));
           } else {
-            // fake progress visual bump
             let nextProgress = task.progress + (Math.random() * 2 + 1);
             if (nextProgress > 95) nextProgress = 95;
             setActiveTasks(prev => prev.map(t => t.id === task.id ? { ...t, progress: nextProgress } : t));
           }
         } catch (e) {
-          // ignore network temp errors during polling
+          // ignore network temp errors
         }
       }
     };
@@ -142,191 +130,116 @@ export default function App() {
   const backgroundTasksCount = activeTasks.filter(t => t.isBackground && t.status === 'pending').length;
 
   return (
-    <div style={{ position: 'relative' }}>
+    <div className="app-container">
       
-      {/* Floating Glass Navbar */}
-      <nav className="glass-nav">
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }} onClick={() => setActiveTab('home')}>
-          <div style={{ background: '#fff', borderRadius: '50%', width: '40px', height: '40px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <Sparkles size={20} color="#000" />
-          </div>
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 800 }}>Muzica<span style={{ color: 'var(--text-muted)' }}>AI</span></h1>
+      {/* SIDEBAR: LIBRARY */}
+      <div className="sidebar">
+        <div style={{ padding: '24px 16px', borderBottom: '1px solid var(--border-light)' }}>
+          <h1 style={{ fontSize: '1.25rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <Sparkles size={18} color="var(--primary)" /> MuzicaAI Studio
+          </h1>
         </div>
-
-        <div style={{ display: 'flex', gap: '8px', background: 'var(--bg-sec)', padding: '8px', borderRadius: '100px', border: '1px solid var(--border-light)' }}>
-          <button 
-            className={`nav-btn ${activeTab === 'home' ? 'active' : ''}`}
-            onClick={() => setActiveTab('home')}
-          >
-            Acasă
-          </button>
-          <button 
-            className={`nav-btn ${activeTab === 'create' ? 'active' : ''}`}
-            onClick={() => setActiveTab('create')}
-          >
-            Creează
-          </button>
-          <button 
-            className={`nav-btn ${activeTab === 'library' ? 'active' : ''}`}
-            onClick={() => setActiveTab('library')}
-            style={{ display: 'flex', alignItems: 'center', gap: '8px' }}
-          >
-            Bibliotecă 
-            {backgroundTasksCount > 0 && (
-              <span style={{ background: 'var(--primary)', color: '#fff', fontSize: '0.7rem', padding: '2px 6px', borderRadius: '100px' }}>
-                {backgroundTasksCount}
-              </span>
-            )}
-          </button>
-        </div>
-
-        <div>
-          <button style={{ background: 'transparent', border: 'none', color: '#fff', cursor: 'pointer' }}><Settings2 size={24} /></button>
-        </div>
-      </nav>
-
-      {/* Main Content Area */}
-      <AnimatePresence mode="wait">
         
-        {/* HOME VIEW */}
-        {activeTab === 'home' && (
-          <motion.div key="home" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
-            <div className="hero-section">
-              <div className="hero-mesh" />
-              <motion.h1 
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                style={{ fontSize: '5rem', fontWeight: 800, maxWidth: '800px', lineHeight: 1.1, marginBottom: '24px' }}
-              >
-                Următorul tău hit începe <span style={{ opacity: 0.5 }}>aici.</span>
-              </motion.h1>
-              <motion.p 
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.1 }}
-                style={{ fontSize: '1.25rem', color: 'var(--text-muted)', maxWidth: '600px', marginBottom: '48px', lineHeight: 1.5 }}
-              >
-                Creează muzică premium folosind cele mai avansate rețele neurale. Fără bariere tehnice, doar pură creativitate.
-              </motion.p>
-              
-              <motion.button 
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: 0.2 }}
-                className="btn-primary" 
-                onClick={() => setActiveTab('create')}
-              >
-                <Play fill="#000" size={24} /> Începe Creația
-              </motion.button>
+        <div style={{ padding: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>Proiecte ({library.length})</div>
+          {backgroundTasksCount > 0 && (
+            <div style={{ background: 'var(--primary)', color: '#fff', fontSize: '0.7rem', padding: '2px 6px', borderRadius: '4px' }}>
+              {backgroundTasksCount} în lucru
             </div>
-          </motion.div>
-        )}
+          )}
+        </div>
 
-        {/* CREATE VIEW */}
-        {activeTab === 'create' && (
-          <motion.div key="create" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} style={{ padding: '40px 20px', maxWidth: '1200px', margin: '0 auto' }}>
+        <div className="scroll-area">
+          {library.length === 0 ? (
+            <div style={{ padding: '32px 16px', textAlign: 'center', color: 'var(--text-muted)' }}>
+              <HardDrive size={32} style={{ opacity: 0.2, marginBottom: '8px' }} />
+              <div style={{ fontSize: '0.9rem' }}>Niciun proiect salvat.</div>
+            </div>
+          ) : (
+            library.map(track => (
+              <div 
+                key={track.id} 
+                className={`library-item ${currentTrack?.id === track.id ? 'active' : ''}`}
+                onClick={() => setCurrentTrack(track)}
+              >
+                <div style={{ width: '32px', height: '32px', borderRadius: '4px', background: track.imageUrl ? `url(${track.imageUrl}) center/cover` : 'var(--bg-card)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Play size={14} color="#fff" style={{ opacity: currentTrack?.id === track.id ? 1 : 0.5 }} />
+                </div>
+                <div style={{ flex: 1, overflow: 'hidden' }}>
+                  <div style={{ fontSize: '0.9rem', fontWeight: 500, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{track.title}</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{track.date} {track.audioUrl ? '' : '• Err'}</div>
+                </div>
+                <button 
+                  onClick={(e) => deleteFromLibrary(track.id, e)}
+                  style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: '4px' }}
+                >
+                  <Trash2 size={14} />
+                </button>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+
+      {/* MAIN CONTENT: WORKSPACE */}
+      <div className="main-content">
+        <div className="top-bar">
+          <h2 style={{ fontSize: '1.25rem' }}>Spațiu de Lucru</h2>
+          {!activeTask && (
+            <button className="btn-primary" onClick={() => {}} style={{ background: 'transparent', border: '1px solid var(--border-light)', color: 'var(--text-main)' }}>
+              <Plus size={16} /> Proiect Nou
+            </button>
+          )}
+        </div>
+
+        <div style={{ padding: '24px', maxWidth: '900px', margin: '0 auto' }}>
+          <AnimatePresence mode="wait">
             {activeTask ? (
-              <GenerationScreen 
-                task={activeTask} 
-                onDismiss={() => setActiveTasks(prev => prev.map(t => t.id === activeTask.id ? { ...t, isBackground: true } : t))} 
-              />
+              <motion.div key="gen" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+                <GenerationScreen 
+                  task={activeTask} 
+                  onDismiss={() => setActiveTasks(prev => prev.map(t => t.id === activeTask.id ? { ...t, isBackground: true } : t))} 
+                />
+              </motion.div>
             ) : (
-              <CreationWizard onGenerate={startGlobalGeneration} />
+              <motion.div key="wiz" initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+                <CreationWizard onGenerate={startGlobalGeneration} />
+              </motion.div>
             )}
-          </motion.div>
-        )}
-
-        {/* LIBRARY VIEW */}
-        {activeTab === 'library' && (
-          <motion.div key="library" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -20 }} style={{ padding: '80px 40px', maxWidth: '1400px', margin: '0 auto' }}>
-            <h2 style={{ fontSize: '3rem', marginBottom: '48px' }}>Colecția Ta</h2>
-            
-            {library.length === 0 ? (
-              <div style={{ textAlign: 'center', padding: '100px 20px', color: 'var(--text-muted)' }}>
-                <Disc3 size={64} style={{ marginBottom: '24px', opacity: 0.2 }} />
-                <h3>Nu ai creat nicio melodie încă.</h3>
-              </div>
-            ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '32px' }}>
-                {library.map((track) => (
-                  <div 
-                    key={track.id} 
-                    style={{ display: 'flex', flexDirection: 'column', gap: '16px', cursor: 'pointer', group: 'true' }}
-                    onClick={() => setCurrentTrack(track)}
-                  >
-                    <div style={{ aspectRatio: '1', background: track.imageUrl ? `url(${track.imageUrl}) center/cover` : 'var(--bg-card)', borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', position: 'relative' }}>
-                      {!track.imageUrl && <div className="hero-mesh" style={{ opacity: 0.5, filter: 'blur(40px)' }} />}
-                      <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.3)', transition: 'background 0.3s' }} className="hover-overlay" />
-                      <Play size={48} color="#fff" style={{ opacity: 0.8, zIndex: 10 }} />
-                      <button 
-                        onClick={(e) => deleteFromLibrary(track.id, e)}
-                        style={{ position: 'absolute', top: '12px', right: '12px', background: 'rgba(0,0,0,0.5)', border: 'none', color: '#fff', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', zIndex: 20 }}
-                      >
-                        <Trash2 size={18} color="#ef4444" />
-                      </button>
-                    </div>
-                    <div>
-                      <h4 style={{ fontSize: '1.2rem', marginBottom: '4px' }}>{track.title}</h4>
-                      <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>{track.date} {track.audioUrl ? '• Gata' : '• Lipsă Audio'}</div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
-          </motion.div>
-        )}
-      </AnimatePresence>
+          </AnimatePresence>
+        </div>
+      </div>
 
       {/* BOTTOM PLAYER */}
-      <AnimatePresence>
-        {currentTrack && (
-          <motion.div 
-            initial={{ y: 100 }} 
-            animate={{ y: 0 }} 
-            exit={{ y: 100 }} 
-            style={{ 
-              position: 'fixed', bottom: 0, left: 0, right: 0, 
-              background: 'rgba(13, 17, 23, 0.95)', backdropFilter: 'blur(16px)', 
-              borderTop: '1px solid var(--border-light)', padding: '16px 48px', 
-              display: 'flex', alignItems: 'center', gap: '32px', zIndex: 1000 
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', minWidth: '200px' }}>
-              <div style={{ width: '48px', height: '48px', borderRadius: '8px', background: currentTrack.imageUrl ? `url(${currentTrack.imageUrl}) center/cover` : 'var(--bg-card)' }} />
-              <div>
-                <div style={{ fontWeight: 600, fontSize: '1rem' }}>{currentTrack.title}</div>
-                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>MuzicaAI Studio</div>
+      {currentTrack && (
+        <div className="bottom-player">
+          <div style={{ display: 'flex', alignItems: 'center', gap: '16px', minWidth: '200px' }}>
+            <div style={{ width: '48px', height: '48px', borderRadius: '4px', background: currentTrack.imageUrl ? `url(${currentTrack.imageUrl}) center/cover` : 'var(--bg-card)' }} />
+            <div>
+              <div style={{ fontWeight: 600, fontSize: '0.95rem' }}>{currentTrack.title}</div>
+              <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>MuzicaAI Studio</div>
+            </div>
+          </div>
+          
+          <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
+            {currentTrack.audioUrl ? (
+              <audio controls src={currentTrack.audioUrl} autoPlay style={{ width: '100%', maxWidth: '600px', height: '32px' }} />
+            ) : (
+              <div style={{ color: 'var(--danger)', fontSize: '0.85rem' }}>
+                URL Audio Indisponibil 
+                <button onClick={() => alert(JSON.stringify(currentTrack.rawResponse, null, 2))} style={{ marginLeft: '8px', padding: '2px 8px', fontSize: '0.75rem' }}>JSON</button>
               </div>
-            </div>
-            
-            <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
-              {currentTrack.audioUrl ? (
-                <audio controls src={currentTrack.audioUrl} autoPlay style={{ width: '100%', maxWidth: '600px', height: '40px' }} />
-              ) : (
-                <div style={{ color: 'var(--danger)', display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                  <span>Eroare: URL Audio Indisponibil în API</span>
-                  <button className="nav-btn" onClick={() => alert(JSON.stringify(currentTrack.rawResponse, null, 2))} style={{ fontSize: '0.8rem', padding: '4px 12px' }}>Vezi RAW JSON</button>
-                </div>
-              )}
-            </div>
+            )}
+          </div>
 
-            <div style={{ display: 'flex', gap: '16px', minWidth: '200px', justifyContent: 'flex-end' }}>
-              {currentTrack.audioUrl && (
-                <a href={currentTrack.audioUrl} download target="_blank" rel="noreferrer" className="btn-secondary" style={{ padding: '8px 16px', fontSize: '0.9rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  MP3
-                </a>
-              )}
-              {currentTrack.videoUrl && (
-                <a href={currentTrack.videoUrl} download target="_blank" rel="noreferrer" className="btn-secondary" style={{ padding: '8px 16px', fontSize: '0.9rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  MP4
-                </a>
-              )}
-              <button className="nav-btn" onClick={() => setCurrentTrack(null)}>Închide</button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
+          <div style={{ display: 'flex', gap: '12px', minWidth: '200px', justifyContent: 'flex-end' }}>
+            {currentTrack.audioUrl && (
+              <a href={currentTrack.audioUrl} download target="_blank" rel="noreferrer" className="btn-secondary">MP3</a>
+            )}
+            <button className="btn-secondary" onClick={() => setCurrentTrack(null)}>Închide</button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

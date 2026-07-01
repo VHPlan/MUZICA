@@ -8,18 +8,16 @@ export default function GenerationScreen({ task, onDismiss }) {
 
   if (isError) {
     return (
-      <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} style={{ padding: '100px 20px', textAlign: 'center', maxWidth: '800px', margin: '0 auto' }}>
-        <div style={{ background: 'rgba(239, 68, 68, 0.1)', padding: '64px', borderRadius: 'var(--radius-lg)', border: '1px solid rgba(239, 68, 68, 0.2)' }}>
-          <AlertCircle size={80} color="#ef4444" style={{ marginBottom: '32px' }} />
-          <h1 style={{ fontSize: '3rem', marginBottom: '24px', color: '#ef4444' }}>Generare întreruptă</h1>
-          <p style={{ fontSize: '1.25rem', color: '#fca5a5', marginBottom: '48px', lineHeight: 1.5 }}>
+      <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} style={{ padding: '24px', textAlign: 'center' }}>
+        <div className="dash-card" style={{ borderColor: 'rgba(239, 68, 68, 0.3)', background: 'rgba(239, 68, 68, 0.05)' }}>
+          <AlertCircle size={48} color="#ef4444" style={{ marginBottom: '16px' }} />
+          <h2 style={{ fontSize: '1.5rem', marginBottom: '12px', color: '#ef4444' }}>Generare întreruptă</h2>
+          <p style={{ fontSize: '1rem', color: '#fca5a5', marginBottom: '24px' }}>
             {task.rawResponse}
           </p>
-          <div style={{ display: 'flex', gap: '24px', justifyContent: 'center' }}>
-            <button className="btn-primary" onClick={onDismiss} style={{ background: '#ef4444', color: '#fff' }}>
-              <RefreshCw /> Încearcă din nou
-            </button>
-          </div>
+          <button className="btn-primary" onClick={onDismiss} style={{ background: '#ef4444', color: '#fff' }}>
+            <RefreshCw size={16} /> Încearcă din nou
+          </button>
         </div>
       </motion.div>
     );
@@ -27,17 +25,15 @@ export default function GenerationScreen({ task, onDismiss }) {
 
   if (isDone) {
     return (
-      <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} style={{ padding: '100px 20px', textAlign: 'center', maxWidth: '800px', margin: '0 auto' }}>
-        <div style={{ background: 'var(--bg-card)', padding: '64px', borderRadius: 'var(--radius-lg)' }}>
-          <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: 'spring', damping: 15 }}>
-            <CheckCircle2 size={80} color="#10b981" style={{ marginBottom: '32px' }} />
-          </motion.div>
-          <h1 style={{ fontSize: '3rem', marginBottom: '24px' }}>Magia e gata!</h1>
-          <p style={{ fontSize: '1.25rem', color: 'var(--text-muted)', marginBottom: '48px' }}>
+      <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} style={{ padding: '24px', textAlign: 'center' }}>
+        <div className="dash-card" style={{ borderColor: 'rgba(16, 185, 129, 0.3)', background: 'rgba(16, 185, 129, 0.05)' }}>
+          <CheckCircle2 size={48} color="#10b981" style={{ marginBottom: '16px' }} />
+          <h2 style={{ fontSize: '1.5rem', marginBottom: '12px' }}>Sinteză Completă</h2>
+          <p style={{ fontSize: '1rem', color: 'var(--text-muted)', marginBottom: '24px' }}>
             Noua ta piesă este pregătită și a fost salvată în bibliotecă.
           </p>
           <button className="btn-primary" onClick={onDismiss}>
-            <ChevronLeft /> Creează o altă piesă
+            <ChevronLeft size={16} /> Înapoi la Spațiul de Lucru
           </button>
         </div>
       </motion.div>
@@ -45,35 +41,34 @@ export default function GenerationScreen({ task, onDismiss }) {
   }
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} style={{ padding: '100px 20px', textAlign: 'center', maxWidth: '800px', margin: '0 auto' }}>
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="dash-card" style={{ padding: '48px 24px', textAlign: 'center' }}>
       
-      <div style={{ position: 'relative', width: '200px', height: '200px', margin: '0 auto 64px' }}>
-        {/* Magic glowing orb */}
+      <div style={{ position: 'relative', width: '120px', height: '120px', margin: '0 auto 32px' }}>
         <motion.div 
-          animate={{ scale: [1, 1.2, 1], rotate: [0, 180, 360] }}
+          animate={{ scale: [1, 1.1, 1], rotate: [0, 180, 360] }}
           transition={{ duration: 8, repeat: Infinity, ease: 'linear' }}
-          style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: '50%', background: 'linear-gradient(135deg, #8b5cf6, #38bdf8)', filter: 'blur(40px)', opacity: 0.5 }}
+          style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, borderRadius: '50%', background: 'linear-gradient(135deg, var(--primary), var(--accent))', filter: 'blur(20px)', opacity: 0.4 }}
         />
-        <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: '#fff', borderRadius: '50%', width: '80px', height: '80px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 40px rgba(255,255,255,0.5)' }}>
-          <Sparkles size={40} color="#000" />
+        <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', background: 'var(--bg-main)', borderRadius: '50%', width: '64px', height: '64px', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 0 20px rgba(0,0,0,0.5)', border: '1px solid var(--border-light)' }}>
+          <Sparkles size={24} color="var(--primary)" />
         </div>
       </div>
 
-      <h1 style={{ fontSize: '3rem', marginBottom: '24px' }}>Rețeaua lucrează...</h1>
-      <p style={{ fontSize: '1.25rem', color: 'var(--text-muted)', marginBottom: '64px' }}>
+      <h2 style={{ fontSize: '1.5rem', marginBottom: '12px' }}>Rețeaua lucrează...</h2>
+      <p style={{ fontSize: '1rem', color: 'var(--text-muted)', marginBottom: '32px' }}>
         Sintetizăm vocea și instrumentalul pentru "{task.settings.genre}".
       </p>
 
-      <div style={{ width: '100%', height: '8px', background: 'var(--bg-card)', borderRadius: '100px', overflow: 'hidden' }}>
+      <div style={{ width: '100%', height: '6px', background: 'var(--bg-main)', borderRadius: '100px', overflow: 'hidden', border: '1px solid var(--border-light)' }}>
         <motion.div 
           initial={{ width: 0 }}
           animate={{ width: `${task.progress}%` }}
-          style={{ height: '100%', background: '#fff', borderRadius: '100px' }}
+          style={{ height: '100%', background: 'linear-gradient(90deg, var(--primary), var(--accent))', borderRadius: '100px' }}
         />
       </div>
-      <div style={{ marginTop: '16px', fontWeight: 600, fontSize: '1.25rem' }}>{Math.round(task.progress)}%</div>
+      <div style={{ marginTop: '12px', fontWeight: 600, fontSize: '1rem', color: 'var(--primary)' }}>{Math.round(task.progress)}%</div>
 
-      <button className="btn-secondary" onClick={onDismiss} style={{ marginTop: '64px' }}>
+      <button className="btn-secondary" onClick={onDismiss} style={{ marginTop: '32px' }}>
         Rulează în fundal
       </button>
 
