@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Play, Download, Share2, Heart, Mic2, Disc3, Smile, FileText } from 'lucide-react';
+import { Play, Download, Share2, Heart, Mic2, Disc3, Smile, FileText, Code } from 'lucide-react';
 
 const GENRES = [
   { id: 'manele', label: 'Manele', icon: '🎤' },
@@ -22,31 +22,26 @@ const MOODS = [
   { id: 'motivational', label: 'Motivational', icon: '🔥' }
 ];
 
-const GLOBAL_RULES = `
-Structura melodiei trebuie să includă:
-- intro instrumental
-- strofe
-- refren
-- refren final repetat
-- outro instrumental de minimum 15-20 secunde
-- fade out natural la final
+const GLOBAL_STRUCTURE = `
+STRUCTURE:
+Intro, verse, chorus, verse, chorus, instrumental solo, final chorus repeated twice, 15-20 second instrumental outro, smooth fade-out.
 
 IMPORTANT:
-Nu opri melodia brusc.
-Nu tăia sunetul la final.
-După ultimul vers, continuă instrumentalul.
-Încheie melodia cu un outro armonios și fade out lent.
-Ultimul acord trebuie să se stingă treptat.`;
+The selected genre is mandatory. Do not change the genre based on the theme. Do not end abruptly.
+After the last verse, continue the instrumental.
+End the song with a harmonious outro and a slow fade out.
+The last chord must fade out gradually.
+`;
 
-const GENRE_RULES = {
-  'manele': 'Generează EXCLUSIV o manea modernă. Nu folosi alte stiluri.',
-  'trap': 'Generează EXCLUSIV trap. Nu folosi alte stiluri.',
-  'rock': 'Generează EXCLUSIV rock. Nu folosi alte stiluri.',
-  'pop': 'Generează EXCLUSIV pop. Nu folosi alte stiluri.',
-  'house': 'Generează EXCLUSIV house. Nu folosi alte stiluri.',
-  'hiphop': 'Generează EXCLUSIV hip hop. Nu folosi alte stiluri.',
-  'lautareasca': 'IMPORTANT: Generează EXCLUSIV o melodie în stil Muzică de Petrecere (Țigănească). Nu folosi elemente pop, trap, rock, EDM, house, reggaeton sau alte stiluri. Instrumentele trebuie să fie specifice acestui gen (vioară, acordeon, țambal, contrabas etc.). Păstrează stilul pe toată durata melodiei.',
-  'instrumental': 'Generează EXCLUSIV muzică instrumentală (fără voce).'
+const GENRE_RULES_EN = {
+  'manele': 'Modern Romanian manea, authentic manea style only, male emotional vocal, oriental melody, accordion, violin, qanun, darbuka, keyboard, deep bass, catchy chorus, wedding party atmosphere, no rock, no metal, no pop-rock, no EDM, no trap, no hip-hop.',
+  'lautareasca': 'Traditional Romanian lautareasca party music, authentic taraf style, Romanian gypsy folk party song, male emotional vocal, violin, accordion, cimbalom, double bass, acoustic guitar, live wedding band energy, Balkan/Romanian folk dance, no rock, no electric guitar, no metal, no pop-rock, no EDM, no trap, no hip-hop.',
+  'trap': 'Modern trap beat, heavy 808 bass, fast hi-hats, autotune vocals, dark atmospheric synth, urban style, no rock, no metal, no acoustic, no country.',
+  'pop': 'Modern mainstream pop, upbeat, catchy melody, clear radio-ready vocals, synth-pop elements, bright energy, no heavy metal, no trap, no harsh vocals.',
+  'rock': 'Authentic rock music, distorted electric guitars, heavy drum beats, powerful rock vocals, bass guitar, energetic rock band performance, no EDM, no trap, no auto-tune.',
+  'house': 'Club house music, four-on-the-floor beat, 120-130 BPM, electronic synthesizers, deep bassline, dance energy, no acoustic, no rock, no metal.',
+  'hiphop': 'Classic hip-hop, boom-bap drum break, sampled melody, rap vocals, urban rhythm, no rock, no country, no EDM.',
+  'instrumental': 'Pure instrumental music, emotional cinematic arrangement, orchestral or electronic elements, strictly no vocals, no singing.'
 };
 
 export default function ArtistStudio() {
@@ -64,6 +59,9 @@ export default function ArtistStudio() {
   
   const [audioUrl, setAudioUrl] = useState('');
   const [songTitle, setSongTitle] = useState('');
+  
+  const [devMode, setDevMode] = useState(false);
+  const [lastPromptSent, setLastPromptSent] = useState('');
 
   const nextStep = () => {
     if (step === 2 && !genre) { alert("Alege un gen muzical!"); return; }
@@ -102,34 +100,49 @@ export default function ArtistStudio() {
     return null;
   };
 
-  const pollTaskStatus = async (taskId, apiKey) => {
+  const pollTaskStatus = async (taskId, apiKey, startTime) => {
+    // Timeout de 5 minute
+    if (Date.now() - startTime > 5 * 60 * 1000) {
+      alert('Eroare Timeout: Generarea a durat mai mult de 5 minute. Încearcă din nou mai târziu.');
+      setLoading(false);
+      return;
+    }
+
     try {
       const response = await fetch(`https://api.piapi.ai/api/v1/task/${taskId}`, {
         headers: { 'x-api-key': apiKey }
       });
+      
+      if (!response.ok) {
+        throw new Error('Eroare de la server (HTTP ' + response.status + ').');
+      }
+
       const data = await response.json();
       const actualData = data.data || data;
 
       if (actualData.status === 'completed') {
         setProgress(100);
         setStatusText('Hitul este gata!');
+        
         const finalUrl = actualData.output?.songs?.[0]?.song_path || findMediaUrl(data);
+        
         if (finalUrl) {
           setAudioUrl(finalUrl);
           setSongTitle(actualData.output?.songs?.[0]?.title || 'Hit Nou AI');
           setStep(5); // Rezultat final
         } else {
-          alert('Eroare la obținerea link-ului media.');
+          alert('Eroare Critică: Melodia a fost generată de AI, dar link-ul audio lipsește din răspunsul PiAPI.');
         }
         setLoading(false);
       } else if (actualData.status === 'failed') {
-        alert('Generarea a eșuat la serverul PiAPI.');
+        alert('Generarea a eșuat la serverul PiAPI. Motiv: ' + (actualData.error?.message || 'Eroare internă Udio.'));
         setLoading(false);
       } else {
-        setTimeout(() => pollTaskStatus(taskId, apiKey), 10000);
+        setTimeout(() => pollTaskStatus(taskId, apiKey, startTime), 10000);
       }
     } catch (err) {
       console.error(err);
+      alert('Eroare rețea: ' + err.message);
       setLoading(false);
     }
   };
@@ -141,14 +154,31 @@ export default function ArtistStudio() {
       return;
     }
     if (!prompt) {
-      alert("Te rog adaugă un prompt!");
+      alert("Te rog adaugă un prompt / temă!");
       return;
     }
     
-    // Asamblăm prompt-ul final premium cu regulile stricte
-    const genreRule = GENRE_RULES[genre] || 'Generează exclusiv în acest stil muzical.';
-    const finalPrompt = `${genreRule}\n\nTema melodiei (Voce ${voice}, limba ${language}, mood: ${mood}):\n${prompt}\n\n${GLOBAL_RULES}`;
+    // Construct strict English prompt based on user instructions
+    const stylePrompt = GENRE_RULES_EN[genre] || 'Generate strictly in the selected genre.';
+    
+    // Ensure translation hack via AI
+    let lyricsInstruction = `Romanian. Lyrics must be entirely in Romanian.`;
+    if (language !== 'Română') lyricsInstruction = `${language}. Lyrics must be entirely in ${language}.`;
+    
+    if (genre === 'instrumental') lyricsInstruction = `NO LYRICS. Instrumental only.`;
 
+    const finalPrompt = `STYLE:
+${stylePrompt}
+
+LYRICS LANGUAGE:
+${lyricsInstruction}
+
+THEME:
+${prompt} (Please interpret this theme in English to understand the context, but ensure the resulting song follows the exact LYRICS LANGUAGE requested above).
+
+${GLOBAL_STRUCTURE}`;
+
+    setLastPromptSent(finalPrompt);
     setLoading(true);
     setProgress(5);
     setStatusText('Inițializare AI...');
@@ -170,15 +200,15 @@ export default function ArtistStudio() {
         })
       });
 
-      if (!response.ok) throw new Error('Eroare server. Verifică cheia și fondurile.');
+      if (!response.ok) throw new Error('Eroare la trimiterea cererii (HTTP ' + response.status + '). Verifică cheia API și fondurile.');
 
       const data = await response.json();
       const taskId = data?.data?.task_id || data?.task_id;
       
       if (taskId) {
-        setTimeout(() => pollTaskStatus(taskId, apiKey), 5000);
+        setTimeout(() => pollTaskStatus(taskId, apiKey, Date.now()), 5000);
       } else {
-        throw new Error('Nu s-a returnat Task ID.');
+        throw new Error('Serverul nu a returnat un Task ID. Răspuns invalid.');
       }
     } catch (error) {
       alert(error.message);
@@ -333,23 +363,39 @@ export default function ArtistStudio() {
 
       {step === 4 && (
         <div style={{ animation: 'fadeIn 0.3s' }}>
-          <h2 style={{ marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '10px' }}><FileText /> Detalii Melodie (Prompt)</h2>
+          <h2 style={{ marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '10px' }}><FileText /> Tema Melodiei</h2>
           <textarea 
             className="input-field" 
-            rows="8" 
+            rows="6" 
             value={prompt}
             onChange={e => setPrompt(e.target.value)}
-            placeholder='Ex: O melodie de dragoste despre Maria. Manea de petrecere cu vioară și acordeon...'
+            placeholder='Ex: Despre prietenie, loialitate și respect...'
             style={{ fontSize: '1.1rem', lineHeight: 1.5 }}
           />
           <div style={{ marginTop: '20px', padding: '16px', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid var(--border-glass)' }}>
-            <h4 style={{ color: 'var(--text-muted)', marginBottom: '8px' }}>💡 Exemple de prompt-uri:</h4>
-            <ul style={{ color: 'var(--text-muted)', fontSize: '0.9rem', paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
-              <li>"Manea de petrecere cu vioară și acordeon despre bani și dușmani."</li>
-              <li>"O melodie de dragoste lentă, ritm oriental, voce caldă."</li>
-              <li>"Trap despre succes și mașini scumpe, bass puternic."</li>
-            </ul>
+            <h4 style={{ color: 'var(--text-muted)', marginBottom: '8px' }}>💡 Notă importantă:</h4>
+            <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: 1.4 }}>
+              Scrie doar subiectul melodiei aici. Sistemul va impune automat genul tău muzical ({genre || 'neselectat'}) și regulile de structură în engleză înainte de a trimite către AI.
+            </p>
           </div>
+          
+          <div style={{ marginTop: '20px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+            <button 
+              onClick={() => setDevMode(!devMode)}
+              style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
+            >
+              <Code size={16} /> {devMode ? 'Ascunde Debug' : 'Arată Debug Mode'}
+            </button>
+          </div>
+          
+          {devMode && lastPromptSent && (
+            <div style={{ marginTop: '16px', padding: '16px', background: 'rgba(0,0,0,0.5)', borderRadius: '8px', border: '1px dashed var(--text-muted)' }}>
+              <div style={{ color: 'var(--success)', fontSize: '0.8rem', marginBottom: '8px' }}>PROMPT EXACT TRIMIS CĂTRE AI:</div>
+              <pre style={{ color: '#fff', fontSize: '0.85rem', whiteSpace: 'pre-wrap', fontFamily: 'monospace' }}>
+                {lastPromptSent}
+              </pre>
+            </div>
+          )}
         </div>
       )}
 
