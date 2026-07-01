@@ -29,13 +29,15 @@ const TRANSLATIONS = {
   }
 };
 
+const GLOBAL_NEGATIVE = 'Do not generate jazz, swing, blues, soul, funk, lounge, acoustic jazz, sax jazz.';
+
 const NEGATIVE_RULES = {
-  'Manele': 'Do not generate rock. Do not generate pop. Do not generate EDM. Do not generate trap.',
-  'Lăutărească': 'Do not generate rock. Do not generate EDM. Do not generate trap.',
-  'Trap': 'Do not generate rock. Do not generate acoustic folk.',
-  'Pop': 'Do not generate rock. Do not generate metal.',
-  'Rock': 'Do not generate EDM. Do not generate trap.',
-  'House': 'Do not generate acoustic. Do not generate rock.'
+  'Manele': `Do not generate rock. Do not generate pop. Do not generate EDM. Do not generate trap. ${GLOBAL_NEGATIVE}`,
+  'Lăutărească': `Do not generate rock. Do not generate EDM. Do not generate trap. ${GLOBAL_NEGATIVE}`,
+  'Trap': `Do not generate rock. Do not generate acoustic folk. ${GLOBAL_NEGATIVE}`,
+  'Pop': `Do not generate rock. Do not generate metal. ${GLOBAL_NEGATIVE}`,
+  'Rock': `Do not generate EDM. Do not generate trap. ${GLOBAL_NEGATIVE}`,
+  'House': `Do not generate acoustic. Do not generate rock. ${GLOBAL_NEGATIVE}`
 };
 
 /**
@@ -74,6 +76,14 @@ Outro with fade out.`;
 
   // SUNO FORMAT
   if (provider === 'suno') {
+    // Exact requested prompt for Club Manele
+    if (genre === 'Manele' && (subgenre === 'Club' || subgenre === 'Petrecere')) {
+      return {
+        prompt: `Modern Romanian club manele, Balkan oriental party music, dominant darbuka/tarabană rhythm, deep bass, oriental keyboard riff, accordion accents, short violin solo, male Romanian vocal, fast dance groove, repetitive catchy chorus, Romanian lyrics only. Theme: ${theme}. No jazz, no swing, no blues, no funk, no rock, no electric guitar, no EDM, no trap, no hip-hop. Natural outro, fade out.`,
+        tags: 'club manele, darbuka, oriental'
+      };
+    }
+
     let tags = [
       `Modern ${mappedLanguage} ${subgenre?.toLowerCase() || ''} ${genre?.toLowerCase() || ''}`,
       ...instruments.map(i => TRANSLATIONS.instruments[i] || i),
@@ -108,10 +118,13 @@ export const generateMusicTask = async (settings, provider, apiKey) => {
   const promptData = buildPrompt(settings, provider);
   
   let payload = {};
+  let model = "";
+  let endpoint = 'https://api.piapi.ai/api/v1/task';
 
   if (provider === 'suno') {
+    model = "music-s";
     payload = {
-      model: "music-s",
+      model: model,
       task_type: "generate_music",
       input: {
         prompt: promptData.prompt,
@@ -121,8 +134,9 @@ export const generateMusicTask = async (settings, provider, apiKey) => {
       }
     };
   } else if (provider === 'udio') {
+    model = "music-u";
     payload = {
-      model: "music-u",
+      model: model,
       task_type: "generate_music",
       input: {
         gpt_description_prompt: promptData,
@@ -132,7 +146,7 @@ export const generateMusicTask = async (settings, provider, apiKey) => {
     };
   }
 
-  const response = await fetch('https://api.piapi.ai/api/v1/task', {
+  const response = await fetch(endpoint, {
     method: 'POST',
     headers: {
       'x-api-key': apiKey,
@@ -150,8 +164,14 @@ export const generateMusicTask = async (settings, provider, apiKey) => {
   const data = await response.json();
   
   if (!data?.data?.task_id && !data?.task_id) {
-    throw new Error('Răspuns invalid PiAPI, fără Task ID.');
+    throw new Error('Eroare API PiAPI: Nu s-a putut obține task_id.');
   }
   
-  return { taskId: data?.data?.task_id || data?.task_id, payloadSent: payload };
+  return { 
+    taskId: data?.data?.task_id || data?.task_id, 
+    payloadSent: payload,
+    endpointUsed: endpoint,
+    modelUsed: model,
+    rawResponse: data
+  };
 };

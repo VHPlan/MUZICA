@@ -11,6 +11,7 @@ const TRIVIA_FACTS = [
 
 export default function PremiumDashboard({ task, onReset, goToLibrary }) {
   const [triviaIndex, setTriviaIndex] = useState(0);
+  const [showDebug, setShowDebug] = useState(false);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -156,8 +157,36 @@ export default function PremiumDashboard({ task, onReset, goToLibrary }) {
             <button className="btn-secondary" style={{ width: '100%', marginTop: '16px', background: 'rgba(255,255,255,0.05)', border: 'none' }} onClick={onReset}>
               Ascunde acest panou (Rulează în fundal)
             </button>
+
+            <button className="btn-secondary" style={{ width: '100%', marginTop: '8px', background: 'transparent', border: '1px dashed rgba(255,255,255,0.2)', color: 'var(--text-muted)' }} onClick={() => setShowDebug(!showDebug)}>
+              {showDebug ? 'Ascunde Debug' : '⚙️ Arată Debug Mode'}
+            </button>
           </div>
         </div>
+
+        {/* Debug Panel */}
+        {showDebug && task && (
+          <div style={{ marginTop: '24px', padding: '20px', background: 'rgba(0,0,0,0.5)', borderRadius: '12px', border: '1px solid rgba(255,255,255,0.1)', overflowX: 'auto' }}>
+            <h3 style={{ color: 'var(--primary)', marginBottom: '16px' }}>Debug Mode</h3>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '16px' }}>
+              <div><strong>Provider:</strong> {task.provider}</div>
+              <div><strong>Model:</strong> {task.modelUsed}</div>
+              <div style={{ gridColumn: 'span 2' }}><strong>Endpoint:</strong> {task.endpointUsed}</div>
+            </div>
+            <div style={{ marginBottom: '16px' }}>
+              <strong>Payload trimis (Spre AI):</strong>
+              <pre style={{ background: 'rgba(0,0,0,0.3)', padding: '12px', borderRadius: '8px', fontSize: '0.8rem', color: '#a78bfa' }}>
+                {JSON.stringify(task.payloadSent, null, 2)}
+              </pre>
+            </div>
+            <div>
+              <strong>Răspuns PiAPI (Task Creation):</strong>
+              <pre style={{ background: 'rgba(0,0,0,0.3)', padding: '12px', borderRadius: '8px', fontSize: '0.8rem', color: '#34d399' }}>
+                {JSON.stringify(task.rawResponse, null, 2)}
+              </pre>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

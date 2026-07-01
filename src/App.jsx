@@ -217,8 +217,15 @@ export default function App() {
     setActiveTasks(prev => [...prev, newTask]);
     
     try {
-      const { taskId, payloadSent } = await generateMusicTask(settings, provider, apiKey);
-      updateTask(localId, { status: 'Se generează...', taskId });
+      const { taskId, payloadSent, endpointUsed, modelUsed, rawResponse } = await generateMusicTask(settings, provider, apiKey);
+      updateTask(localId, { 
+        status: 'Se generează...', 
+        taskId, 
+        payloadSent, 
+        endpointUsed, 
+        modelUsed, 
+        rawResponse 
+      });
       setTimeout(() => pollTaskStatus(localId, taskId, apiKey, Date.now(), settings), 5000);
     } catch (error) {
       updateTask(localId, { status: 'Eroare', errorMsg: error.message });
