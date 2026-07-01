@@ -13,10 +13,11 @@ export default function ArtistStudio() {
       const response = await fetch(`https://api.piapi.ai/api/v1/task/${taskId}`, {
         headers: { 'x-api-key': apiKey }
       });
-      const data = await response.json();
+      const rawData = await response.json();
+      const data = rawData.data || rawData; // PiAPI wraps in "data" object
 
       if (data.status === 'completed') {
-        const songUrl = data.data?.audio_url || (data.data?.clips && data.data.clips[0]?.audio_url);
+        const songUrl = data.audio_url || (data.clips && data.clips[0]?.audio_url);
         if (songUrl) {
           setAudioUrl(songUrl);
           setStatus('Melodia este gata! O poți asculta mai jos.');
@@ -96,11 +97,13 @@ export default function ArtistStudio() {
 
       const data = await response.json();
       
-      if (data && data.task_id) {
+      const taskId = data?.data?.task_id || data?.task_id;
+      
+      if (taskId) {
         setStatus('Cererea a fost acceptată! AI-ul compune piesa... Va dura în jur de 2-3 minute.');
-        setTimeout(() => pollTaskStatus(data.task_id, apiKey), 10000);
+        setTimeout(() => pollTaskStatus(taskId, apiKey), 10000);
       } else {
-        throw new Error('Serverul nu a returnat un Task ID.');
+        throw new Error(`Răspuns neașteptat: ${JSON.stringify(data)}`);
       }
 
     } catch (error) {
