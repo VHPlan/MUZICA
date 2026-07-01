@@ -148,16 +148,20 @@ export const generateMusicTask = async (settings, provider, apiKey) => {
   } else if (provider === 'udio') {
     model = "music-u";
     let lType = promptData.isCustomLyrics ? "user" : "generate";
+    let negative = GLOBAL_NEGATIVE;
+
     if (promptData.isInstrumental && settings.voice === 'Fără Voce') {
         lType = "instrumental";
+        negative = "vocals, singing, voices, rock, jazz, classical, country, heavy metal"; // Under 100 chars
     }
+    
     payload = {
       model: model,
       task_type: "generate_music",
       input: {
         gpt_description_prompt: promptData.style,
         prompt: promptData.lyrics,
-        negative_tags: promptData.isInstrumental ? GLOBAL_NEGATIVE + ", vocals, singing, voices" : GLOBAL_NEGATIVE,
+        negative_tags: negative,
         lyrics_type: lType
       }
     };
