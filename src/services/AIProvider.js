@@ -25,11 +25,7 @@ const TRANSLATIONS = {
     'Saxofon': 'Saxophone',
     'Țambal': 'Cimbalom',
     'Chitară acustică': 'Acoustic guitar'
-  }
-};
-
 const GLOBAL_NEGATIVE = 'No rock, no jazz, no classical, no country, no heavy metal, no acoustic indie.';
-const GLOBAL_PREFIX = `STRICT ROMANIAN ORIENTAL MUSIC ONLY. Modern Romanian manele / Balkan oriental party style. Romanian lyrics only.`;
 
 const sanitizeString = (str) => {
   if (!str) return "";
@@ -51,14 +47,14 @@ export const buildPrompt = (settings, provider = 'suno') => {
   let genreTags = '';
 
   if (genre === 'Tarabană & Bass') {
-    genreDirectives = "Dominant darbuka/tarabană rhythm, deep heavy bass, oriental keyboard riff, fast dance groove, viral balkan trap feel, repetitive catchy hook, Romanian party atmosphere.";
-    genreTags = "balkan trap, darbuka, oriental percussion, heavy bass, party";
+    genreDirectives = "Viral Balkan trap, modern Romanian manele, dominant darbuka/tarabană percussion, extremely deep 808 bass, oriental keyboard riff, fast dance groove, repetitive catchy hook, club party atmosphere.";
+    genreTags = "balkan trap, darbuka, oriental percussion, heavy bass, party, modern manele";
   } else if (genre === 'Manele de Club') {
-    genreDirectives = "Modern Romanian club manele, reggaeton-like energetic beat, deep bass, modern synthesizer, commercial pop-oriental fusion, club atmosphere.";
-    genreTags = "club manele, romanian pop, oriental synth, reggaeton beat, dance";
+    genreDirectives = "Extremely commercial Romanian club manele, modern EDM-oriental fusion, very heavy bass, reggaeton dance rhythm, modern synthesizer melodies, high energy club banger.";
+    genreTags = "club manele, EDM oriental, heavy bass, reggaeton rhythm, synth pop";
   } else if (genre === 'Petrecere') {
-    genreDirectives = "Romanian traditional party music (petrecere), upbeat tempo, live accordion solos, violin, joyful and highly energetic rhythm.";
-    genreTags = "party music, accordion, violin, traditional pop, upbeat";
+    genreDirectives = "Romanian traditional party music (manele vechi/petrecere), upbeat tempo, live accordion solos, violin, joyful and highly energetic wedding rhythm.";
+    genreTags = "party music, accordion, violin, traditional pop, upbeat, wedding";
   } else if (genre === 'Lăutărească') {
     genreDirectives = "Authentic Romanian lăutărească music, live taraf feeling, acoustic instruments, violin, accordion, cimbalom (țambal), traditional acoustic rhythm.";
     genreTags = "lautareasca, taraf, gypsy folk, live acoustic, cimbalom";
@@ -71,8 +67,7 @@ export const buildPrompt = (settings, provider = 'suno') => {
   const learningInjection = `${promptModifier} ${negativeModifier}`;
 
   if (provider === 'udio') {
-    const udioPrompt = `${GLOBAL_PREFIX}
-${genreDirectives}
+    const udioPrompt = `Romanian lyrics only. ${genreDirectives}
 Voice: ${mappedVoice}. Tempo: ${mappedTempo}.
 Energy level: ${energy}/100.
 ${instrumentList ? `Instruments: ${instrumentList}.` : ''}
@@ -85,10 +80,10 @@ Natural outro with fade out.`;
   }
 
   if (provider === 'suno') {
-    let finalTags = `${genreTags}, ${mappedVoice}, ${mappedTempo}, energy ${energy}, ${atmosphere} atmosphere`;
+    let finalTags = `romanian lyrics, ${genreTags}, ${mappedVoice}, ${mappedTempo}, energy ${energy}, ${atmosphere} atmosphere`;
     if (instrumentList) finalTags += `, ${instrumentList}`;
 
-    let sunoPrompt = `${GLOBAL_PREFIX}\n${genreDirectives}\nTheme: ${theme}.\n${learningInjection} Natural outro, fade out.`;
+    let sunoPrompt = `Romanian lyrics only.\n${genreDirectives}\nTheme: ${theme}.\n${learningInjection} Natural outro, fade out.`;
     
     return {
       prompt: sunoPrompt,
