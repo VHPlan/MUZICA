@@ -83,9 +83,9 @@ export default function App() {
               return null;
             };
 
-            let extractedAudio = findUrl(resultData, 'audio_url') || findUrl(resultData, 'audio_file') || findUrl(resultData, 'file_url') || '';
+            let extractedAudio = findUrl(resultData, 'audio_url') || findUrl(resultData, 'audio_file') || findUrl(resultData, 'file_url') || findUrl(resultData, 'song_path') || '';
             let extractedVideo = findUrl(resultData, 'video_url') || findUrl(resultData, 'video_file') || '';
-            let extractedImage = findUrl(resultData, 'image_url') || findUrl(resultData, 'image_file') || findUrl(resultData, 'cover_url') || '';
+            let extractedImage = findUrl(resultData, 'image_url') || findUrl(resultData, 'image_file') || findUrl(resultData, 'cover_url') || findUrl(resultData, 'image_path') || '';
 
             const finalTrack = {
               id: task.id,
