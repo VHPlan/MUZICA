@@ -31,6 +31,11 @@ const TRANSLATIONS = {
 const GLOBAL_NEGATIVE = 'No jazz, no rock, no pop, no EDM, no trap, no hip-hop, no country.';
 const GLOBAL_PREFIX = `STRICT ROMANIAN ORIENTAL MUSIC ONLY.\nModern Romanian manele / Balkan oriental party style.\nRomanian lyrics only.\n${GLOBAL_NEGATIVE}\n`;
 
+const sanitizeString = (str) => {
+  if (!str) return "";
+  return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^\w\s.,-]/gi, ' ').substring(0, 119);
+};
+
 /**
  * Builds the exact prompt structure based on the provider and settings.
  */
@@ -142,9 +147,10 @@ export const generateMusicTask = async (settings, provider, apiKey) => {
       task_type: "generate",
       input: {
         prompt: promptData.prompt ? promptData.prompt : (promptData || ""),
-        tags: promptData.tags ? promptData.tags.substring(0, 119) : "",
-        title: `AI Hit - ${settings.genre}`,
-        make_instrumental: false
+        tags: promptData.tags ? sanitizeString(promptData.tags) : "",
+        title: sanitizeString(`Hit - ${settings.genre}`),
+        make_instrumental: false,
+        wait_audio: false
       }
     };
   } else if (provider === 'udio') {
