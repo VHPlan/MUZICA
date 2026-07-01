@@ -141,7 +141,12 @@ export const generateMusicTask = async (settings, provider, apiKey) => {
     body: JSON.stringify(payload)
   });
 
-  if (!response.ok) throw new Error('Eroare API PiAPI: ' + response.status);
+  if (!response.ok) {
+    if (response.status === 503) {
+      throw new Error('Eroare 503: Serverele AI (Suno/Udio) sunt momentan supraaglomerate sau indisponibile. Te rog să încerci din nou în câteva minute, sau schimbă providerul din Pasul 5.');
+    }
+    throw new Error('Eroare API PiAPI: ' + response.status);
+  }
   const data = await response.json();
   
   if (!data?.data?.task_id && !data?.task_id) {
