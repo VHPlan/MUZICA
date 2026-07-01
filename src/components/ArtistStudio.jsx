@@ -34,14 +34,14 @@ The last chord must fade out gradually.
 `;
 
 const GENRE_RULES_EN = {
-  'manele': 'Modern Romanian manea, authentic manea style only, male emotional vocal, oriental melody, accordion, violin, qanun, darbuka, keyboard, deep bass, catchy chorus, wedding party atmosphere, no rock, no metal, no pop-rock, no EDM, no trap, no hip-hop.',
-  'lautareasca': 'Traditional Romanian lautareasca party music, authentic taraf style, Romanian gypsy folk party song, male emotional vocal, violin, accordion, cimbalom, double bass, acoustic guitar, live wedding band energy, Balkan/Romanian folk dance, no rock, no electric guitar, no metal, no pop-rock, no EDM, no trap, no hip-hop.',
-  'trap': 'Modern trap beat, heavy 808 bass, fast hi-hats, autotune vocals, dark atmospheric synth, urban style, no rock, no metal, no acoustic, no country.',
-  'pop': 'Modern mainstream pop, upbeat, catchy melody, clear radio-ready vocals, synth-pop elements, bright energy, no heavy metal, no trap, no harsh vocals.',
-  'rock': 'Authentic rock music, distorted electric guitars, heavy drum beats, powerful rock vocals, bass guitar, energetic rock band performance, no EDM, no trap, no auto-tune.',
-  'house': 'Club house music, four-on-the-floor beat, 120-130 BPM, electronic synthesizers, deep bassline, dance energy, no acoustic, no rock, no metal.',
-  'hiphop': 'Classic hip-hop, boom-bap drum break, sampled melody, rap vocals, urban rhythm, no rock, no country, no EDM.',
-  'instrumental': 'Pure instrumental music, emotional cinematic arrangement, orchestral or electronic elements, strictly no vocals, no singing.'
+  'manele': 'modern Romanian manea, authentic manea style, oriental melody, accordion, violin, qanun, darbuka, keyboard, deep bass, catchy chorus, wedding party atmosphere',
+  'lautareasca': 'traditional Romanian lautareasca party music, authentic taraf style, gypsy folk party song, violin, accordion, cimbalom, double bass, acoustic guitar, live wedding band energy, Balkan folk dance',
+  'trap': 'modern trap beat, heavy 808 bass, fast hi-hats, autotune vocals, dark atmospheric synth, urban style',
+  'pop': 'modern mainstream pop, upbeat, catchy melody, clear radio-ready vocals, synth-pop elements, bright energy',
+  'rock': 'authentic rock music, distorted electric guitars, heavy drum beats, powerful rock vocals, bass guitar, energetic rock band performance',
+  'house': 'club house music, four-on-the-floor beat, 120-130 BPM, electronic synthesizers, deep bassline, dance energy',
+  'hiphop': 'classic hip-hop, boom-bap drum break, sampled melody, rap vocals, urban rhythm',
+  'instrumental': 'pure instrumental music, emotional cinematic arrangement, orchestral or electronic elements'
 };
 
 export default function ArtistStudio() {
@@ -183,6 +183,8 @@ ${GLOBAL_STRUCTURE}`;
     setProgress(5);
     setStatusText('Inițializare AI...');
 
+    const negativeTags = genre === 'rock' ? 'edm, trap, autotune' : 'rock, heavy metal, distorted guitars, hard rock, edm, trap, hip-hop, rap';
+
     try {
       const response = await fetch('https://api.piapi.ai/api/v1/task', {
         method: 'POST',
@@ -195,6 +197,7 @@ ${GLOBAL_STRUCTURE}`;
           task_type: "generate_music",
           input: {
             gpt_description_prompt: finalPrompt,
+            negative_tags: negativeTags,
             lyrics_type: "generate"
           }
         })
