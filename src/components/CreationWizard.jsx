@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Play, Sparkles } from 'lucide-react';
+import { Play, Sparkles, Settings2 } from 'lucide-react';
 
 const GENRES = [
   { id: 'manele_club', title: 'Manele de Club', desc: 'Beat rapid, bass adânc' },
@@ -84,16 +84,7 @@ export default function CreationWizard({ onGenerate }) {
               <div 
                 key={v}
                 onClick={() => setVoice(v)}
-                style={{ 
-                  padding: '24px 32px', 
-                  borderRadius: '100px', 
-                  background: voice === v ? '#fff' : 'var(--bg-card)', 
-                  color: voice === v ? '#000' : '#fff',
-                  fontWeight: 600,
-                  fontSize: '1.1rem',
-                  cursor: 'pointer',
-                  transition: 'all 0.3s'
-                }}
+                className={`custom-pill ${voice === v ? 'active' : ''}`}
               >
                 {v}
               </div>
@@ -131,11 +122,13 @@ export default function CreationWizard({ onGenerate }) {
             <div style={{ display: 'flex', gap: '16px' }}>
               <div 
                 onClick={() => setProvider('suno')}
-                style={{ flex: 1, padding: '20px', textAlign: 'center', borderRadius: 'var(--radius-sm)', cursor: 'pointer', border: provider === 'suno' ? '2px solid #fff' : '2px solid transparent', background: provider === 'suno' ? 'rgba(255,255,255,0.1)' : '#000' }}
+                className={`custom-pill ${provider === 'suno' ? 'active' : ''}`}
+                style={{ flex: 1, padding: '20px', borderRadius: 'var(--radius-sm)' }}
               >Suno</div>
               <div 
                 onClick={() => setProvider('udio')}
-                style={{ flex: 1, padding: '20px', textAlign: 'center', borderRadius: 'var(--radius-sm)', cursor: 'pointer', border: provider === 'udio' ? '2px solid #fff' : '2px solid transparent', background: provider === 'udio' ? 'rgba(255,255,255,0.1)' : '#000' }}
+                className={`custom-pill ${provider === 'udio' ? 'active' : ''}`}
+                style={{ flex: 1, padding: '20px', borderRadius: 'var(--radius-sm)' }}
               >Udio</div>
             </div>
           </div>

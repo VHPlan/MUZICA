@@ -90,22 +90,22 @@ export default function App() {
           <h1 style={{ fontSize: '1.5rem', fontWeight: 800 }}>Muzica<span style={{ color: 'var(--text-muted)' }}>AI</span></h1>
         </div>
 
-        <div style={{ display: 'flex', gap: '8px', background: 'var(--bg-card)', padding: '6px', borderRadius: '100px' }}>
+        <div style={{ display: 'flex', gap: '8px', background: 'var(--bg-sec)', padding: '8px', borderRadius: '100px', border: '1px solid var(--border-light)' }}>
           <button 
+            className={`nav-btn ${activeTab === 'home' ? 'active' : ''}`}
             onClick={() => setActiveTab('home')}
-            style={{ background: activeTab === 'home' ? '#fff' : 'transparent', color: activeTab === 'home' ? '#000' : '#fff', border: 'none', padding: '12px 24px', borderRadius: '100px', fontWeight: 600, cursor: 'pointer', transition: 'all 0.3s' }}
           >
             Acasă
           </button>
           <button 
+            className={`nav-btn ${activeTab === 'create' ? 'active' : ''}`}
             onClick={() => setActiveTab('create')}
-            style={{ background: activeTab === 'create' ? '#fff' : 'transparent', color: activeTab === 'create' ? '#000' : '#fff', border: 'none', padding: '12px 24px', borderRadius: '100px', fontWeight: 600, cursor: 'pointer', transition: 'all 0.3s' }}
           >
             Creează
           </button>
           <button 
+            className={`nav-btn ${activeTab === 'library' ? 'active' : ''}`}
             onClick={() => setActiveTab('library')}
-            style={{ background: activeTab === 'library' ? '#fff' : 'transparent', color: activeTab === 'library' ? '#000' : '#fff', border: 'none', padding: '12px 24px', borderRadius: '100px', fontWeight: 600, cursor: 'pointer', transition: 'all 0.3s' }}
           >
             Bibliotecă
           </button>
