@@ -22,9 +22,11 @@ const TRANSLATIONS = {
     'Acordeon': 'accordion accents',
     'Vioară': 'violin solo',
     'Clape': 'oriental keyboard',
-    'Saxofon': 'Saxophone',
-    'Țambal': 'Cimbalom',
-    'Chitară acustică': 'Acoustic guitar'
+    'Saxofon': 'saxophone solo',
+    'Țambal': 'cimbalom',
+    'Chitară acustică': 'acoustic guitar',
+    'Bass': 'heavy deep 808 bass',
+    'Clarinet': 'balkan clarinet solo'
   }
 };
 

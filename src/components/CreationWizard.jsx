@@ -13,8 +13,17 @@ export default function CreationWizard({ onGenerate }) {
   const [energy, setEnergy] = useState(85);
   const [voice, setVoice] = useState('Masculină');
   const [theme, setTheme] = useState('');
+  const [selectedInstruments, setSelectedInstruments] = useState([]);
   const [apiKey, setApiKey] = useState(localStorage.getItem('piapi_key') || '');
   const [provider, setProvider] = useState('suno');
+
+  const ALL_INSTRUMENTS = ['Tarabană', 'Bass', 'Vioară', 'Clarinet', 'Saxofon', 'Acordeon', 'Țambal'];
+
+  const toggleInstrument = (inst) => {
+    setSelectedInstruments(prev => 
+      prev.includes(inst) ? prev.filter(i => i !== inst) : [...prev, inst]
+    );
+  };
 
   const handleStart = () => {
     if (!apiKey) {
@@ -27,7 +36,7 @@ export default function CreationWizard({ onGenerate }) {
       genre, 
       energy, 
       tempo: 'Rapid', 
-      instruments: ['Auto'], 
+      instruments: selectedInstruments.length > 0 ? selectedInstruments : ['Auto'], 
       voice, 
       atmosphere: 'Studio', 
       theme, 
@@ -85,7 +94,22 @@ export default function CreationWizard({ onGenerate }) {
       </div>
 
       <div className="dash-card" style={{ marginBottom: '24px' }}>
-        <h3 style={{ fontSize: '1.1rem', marginBottom: '16px' }}>4. Tematică (Subiectul Versurilor)</h3>
+        <h3 style={{ fontSize: '1.1rem', marginBottom: '16px' }}>4. Instrumente Solistice (Opțional)</h3>
+        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+          {ALL_INSTRUMENTS.map(inst => (
+            <div 
+              key={inst}
+              onClick={() => toggleInstrument(inst)}
+              className={`compact-pill ${selectedInstruments.includes(inst) ? 'active' : ''}`}
+            >
+              {inst}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="dash-card" style={{ marginBottom: '24px' }}>
+        <h3 style={{ fontSize: '1.1rem', marginBottom: '16px' }}>5. Tematică (Subiectul Versurilor)</h3>
         <textarea 
           value={theme}
           onChange={(e) => setTheme(e.target.value)}
