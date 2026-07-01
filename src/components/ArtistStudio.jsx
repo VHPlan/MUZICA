@@ -102,7 +102,7 @@ export default function ArtistStudio() {
           model: "music-u",
           task_type: "generate_music",
           input: {
-            gpt_description_prompt: `A traditional ${genre} song with Romanian lyrics. The vocals must be strictly in Romanian language. Subject and theme: ${prompt}`,
+            gpt_description_prompt: prompt,
             lyrics_type: "generate"
           }
         })
