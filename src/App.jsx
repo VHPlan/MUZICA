@@ -93,6 +93,9 @@ function Library({ libraryUpdated, activeTasks, cancelTask, retryTask }) {
               <div style={{ display: 'flex', gap: '8px', fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '8px' }}>
                 <span style={{ background: 'rgba(255,255,255,0.05)', padding: '4px 8px', borderRadius: '4px' }}>{song.genre}</span>
                 <span style={{ background: 'rgba(255,255,255,0.05)', padding: '4px 8px', borderRadius: '4px' }}>{song.date}</span>
+                <button onClick={() => setFeedbackSong(song)} style={{ background: 'rgba(139,92,246,0.2)', border: 'none', color: '#fff', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer', marginLeft: 'auto' }}>
+                  ⭐ Feedback
+                </button>
               </div>
               
               <audio controls src={song.url} style={{ width: '100%', height: '36px' }}></audio>
@@ -122,6 +125,8 @@ export default function App() {
   const [activeTasks, setActiveTasks] = useState([]);
   const [notification, setNotification] = useState(null);
   const [libraryCounter, setLibraryCounter] = useState(0);
+  const [feedbackSong, setFeedbackSong] = useState(null); // The song being evaluated
+  const [feedbackData, setFeedbackData] = useState({ rating: 0, issues: [] });
 
   const tabs = [
     { id: 'home', label: 'Home', icon: Home },
@@ -239,6 +244,30 @@ export default function App() {
     startGlobalGeneration(task.settings, task.provider, task.apiKey);
   };
 
+  const submitFeedback = () => {
+    if (!feedbackSong) return;
+    const history = JSON.parse(localStorage.getItem('muzica_ai_feedback') || '[]');
+    const newFeedback = {
+      songId: feedbackSong.id,
+      title: feedbackSong.title,
+      rating: feedbackData.rating,
+      issues: feedbackData.issues,
+      date: new Date().toISOString()
+    };
+    localStorage.setItem('muzica_ai_feedback', JSON.stringify([newFeedback, ...history]));
+    
+    setNotification({ type: 'success', message: 'Mulțumim! AI-ul a memorat feedback-ul pentru următoarele generări.' });
+    setFeedbackSong(null);
+    setFeedbackData({ rating: 0, issues: [] });
+  };
+
+  const toggleIssue = (issue) => {
+    setFeedbackData(prev => ({
+      ...prev,
+      issues: prev.issues.includes(issue) ? prev.issues.filter(i => i !== issue) : [...prev.issues, issue]
+    }));
+  };
+
   return (
     <div>
       <nav style={{ background: 'rgba(22, 27, 45, 0.8)', backdropFilter: 'blur(12px)', borderBottom: '1px solid var(--border-glass)', padding: '16px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, zIndex: 100 }}>
@@ -301,6 +330,46 @@ export default function App() {
         <div style={{ position: 'fixed', top: '80px', right: '24px', background: notification.type === 'error' ? 'rgba(220, 38, 38, 0.9)' : 'rgba(16, 185, 129, 0.9)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: '8px', padding: '16px 24px', zIndex: 1000, color: '#fff', display: 'flex', alignItems: 'center', gap: '12px', boxShadow: '0 4px 12px rgba(0,0,0,0.3)', animation: 'slideDown 0.3s' }}>
           <CheckCircle size={20} />
           <span style={{ fontWeight: 500 }}>{notification.message}</span>
+        </div>
+      )}
+
+      {/* Feedback Modal */}
+      {feedbackSong && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.8)', zIndex: 2000, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(10px)' }}>
+          <div className="glass-panel" style={{ width: '90%', maxWidth: '500px', padding: '32px' }}>
+            <h2 style={{ marginBottom: '8px', color: 'var(--primary)' }}>Cum ți se pare piesa?</h2>
+            <p style={{ color: 'var(--text-muted)', marginBottom: '24px' }}><strong>{feedbackSong.title}</strong></p>
+
+            <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', justifyContent: 'center' }}>
+              {[1, 2, 3, 4, 5].map(star => (
+                <span 
+                  key={star} 
+                  onClick={() => setFeedbackData({...feedbackData, rating: star})}
+                  style={{ fontSize: '2.5rem', cursor: 'pointer', color: feedbackData.rating >= star ? '#FCD34D' : 'rgba(255,255,255,0.2)' }}
+                >
+                  ★
+                </span>
+              ))}
+            </div>
+
+            <div style={{ marginBottom: '24px', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+              {[
+                'Sună exact cum vreau', 'Prea mult rock', 'Prea mult jazz', 
+                'Prea puțină tarabană', 'Prea puțin bass', 'Prea puțin oriental', 
+                'Refren slab', 'Vocea nu se potrivește', 'Instrumental prea lent'
+              ].map(issue => (
+                <label key={issue} style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer', fontSize: '0.9rem', color: 'var(--text-muted)' }}>
+                  <input type="checkbox" checked={feedbackData.issues.includes(issue)} onChange={() => toggleIssue(issue)} />
+                  {issue}
+                </label>
+              ))}
+            </div>
+
+            <div style={{ display: 'flex', gap: '16px' }}>
+              <button className="btn-secondary" style={{ flex: 1 }} onClick={() => setFeedbackSong(null)}>Renunță</button>
+              <button className="btn-primary glow-btn" style={{ flex: 1 }} onClick={submitFeedback} disabled={feedbackData.rating === 0}>Trimite Feedback</button>
+            </div>
+          </div>
         </div>
       )}
 

@@ -1,6 +1,5 @@
-// src/services/AIProvider.js
+import { analyzeFeedback } from './FeedbackAnalyzer';
 
-// Maps UI terminology to AI prompt terminology
 const TRANSLATIONS = {
   voice: {
     'Masculină': 'Male vocal',
@@ -64,24 +63,27 @@ Outro with fade out.`;
   // SUNO FORMAT
   if (provider === 'suno') {
     
+    const { promptModifier, negativeModifier } = analyzeFeedback();
+    const learningInjection = `${promptModifier} ${negativeModifier}`;
+
     // Preset Prompts
     if (genre === 'Tarabană & Bass TikTok') {
       return {
-        prompt: `STRICT ROMANIAN ORIENTAL MUSIC ONLY. TikTok Romanian club manele instrumental vibe, dominant darbuka/tarabană rhythm, very deep bass, oriental keyboard riff, fast dance groove, repetitive catchy hook, party atmosphere, Romanian lyrics only. No jazz, no rock, no pop, no EDM, no trap, no hip-hop. Natural outro, fade out.`,
+        prompt: `STRICT ROMANIAN ORIENTAL MUSIC ONLY. TikTok Romanian club manele instrumental vibe, dominant darbuka/tarabană rhythm, very deep bass, oriental keyboard riff, fast dance groove, repetitive catchy hook, party atmosphere, Romanian lyrics only. No jazz, no rock, no pop, no EDM, no trap, no hip-hop. ${learningInjection} Natural outro, fade out.`,
         tags: 'tiktok, club manele, tarabana, bass, oriental'
       };
     }
 
     if (genre === 'Tarabană & Bass') {
       return {
-        prompt: `${GLOBAL_PREFIX}\nDominant darbuka/tarabană rhythm, deep bass, oriental keyboard riff, fast dance groove, repetitive catchy hook, Romanian party atmosphere. Theme: ${theme}. Natural outro, fade out.`,
+        prompt: `${GLOBAL_PREFIX}\nDominant darbuka/tarabană rhythm, deep bass, oriental keyboard riff, fast dance groove, repetitive catchy hook, Romanian party atmosphere. Theme: ${theme}. ${learningInjection} Natural outro, fade out.`,
         tags: 'tarabana, bass, oriental, party'
       };
     }
 
     if (genre === 'Lăutărească / Țigănească') {
       return {
-        prompt: `${GLOBAL_PREFIX}\nAuthentic Romanian lăutărească party music, live taraf feeling, violin, accordion, cimbalom, double bass, acoustic guitar, traditional rhythm. Theme: ${theme}. Natural outro, fade out.`,
+        prompt: `${GLOBAL_PREFIX}\nAuthentic Romanian lăutărească party music, live taraf feeling, violin, accordion, cimbalom, double bass, acoustic guitar, traditional rhythm. Theme: ${theme}. ${learningInjection} Natural outro, fade out.`,
         tags: 'lautareasca, taraf, gypsy, live'
       };
     }
@@ -103,6 +105,15 @@ Outro with fade out.`;
     } else {
       tags += ', catchy repetitive chorus';
       promptText = `${GLOBAL_PREFIX}\n${tags}, Romanian lyrics only. Theme: ${theme}. Natural outro, fade out.`;
+    }
+
+    // Duplicat sters
+    
+    // Injectăm smart learning tuning
+    if (promptModifier || negativeModifier) {
+      if (promptText) {
+        promptText = promptText.replace('Natural outro', `${promptModifier} ${negativeModifier} Natural outro`);
+      }
     }
 
     return {
