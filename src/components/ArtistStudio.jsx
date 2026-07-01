@@ -26,27 +26,27 @@ const MOODS = [
 const GENRE_RULES_EN = {
   'manea_petrecere': {
     name: 'Romanian manele',
-    style: 'Romanian manele, oriental Balkan pop-folk, wedding party manea, male vocal, emotional vocal ornaments, accordion, violin, darbuka, keyboard, deep bass, catchy chorus, dance rhythm',
+    style: 'romanian manele, oriental balkan pop-folk, wedding party manea, male vocal, emotional vocal ornaments, accordion, violin, darbuka, keyboard, deep bass, catchy chorus, dance rhythm',
     negative: 'rock, electric guitar, metal, pop-rock, EDM, trap, hip-hop'
   },
   'manele': {
     name: 'Romanian manele',
-    style: 'Modern Romanian manele, oriental Balkan pop-folk, accordion, violin, darbuka, keyboard, male Romanian vocal, wedding party, catchy chorus',
+    style: 'modern romanian manele, oriental balkan pop-folk, accordion, violin, darbuka, keyboard, male romanian vocal, wedding party, catchy chorus',
     negative: 'rock, metal, electric guitar, rock drums, pop-rock, punk, grunge, EDM, trap, hip-hop'
   },
   'lautareasca': {
     name: 'Romanian lautareasca party music',
-    style: 'traditional Romanian lautareasca party music, authentic taraf, violin, accordion, cimbalom, double bass, acoustic guitar, Balkan folk dance, Romanian male vocal',
+    style: 'traditional romanian lautareasca party music, authentic taraf, violin, accordion, cimbalom, double bass, acoustic guitar, balkan folk dance, romanian male vocal',
     negative: 'rock, metal, electric guitar, rock drums, pop-rock, EDM, trap, hip-hop, synthwave'
   },
   'trap': {
     name: 'Romanian trap',
-    style: 'Romanian trap, 808 bass, hi-hats, dark melodic beat, modern rap vocal',
+    style: 'romanian trap, 808 bass, hi-hats, dark melodic beat, modern rap vocal',
     negative: 'manele, lautareasca, rock, metal, folk, wedding music'
   },
   'pop': {
     name: 'Romanian pop',
-    style: 'modern Romanian pop, radio hit, catchy chorus, clean vocal, polished production',
+    style: 'modern romanian pop, radio hit, catchy chorus, clean vocal, polished production',
     negative: 'rock, metal, trap, manele, lautareasca, EDM'
   },
   'rock': {
@@ -105,8 +105,8 @@ export default function ArtistStudio() {
         if (currentProgress > 95) currentProgress = 95;
         setProgress(currentProgress);
         
-        if (currentProgress < 30) setStatusText('✍️ AI pregătește structura prompt-ului...');
-        else if (currentProgress < 70) setStatusText('🎼 Compune instrumentalul (20s outro)...');
+        if (currentProgress < 30) setStatusText('✍️ AI pregătește structura prompt-ului (Suno)...');
+        else if (currentProgress < 70) setStatusText('🎼 Compune instrumentalul (până la 4 minute)...');
         else setStatusText('🎤 Aplică fade-out natural și procesează vocea...');
         
       }, 4000);
@@ -148,21 +148,22 @@ export default function ArtistStudio() {
         setProgress(100);
         setStatusText('Hitul este gata!');
         
-        const finalUrl = actualData.output?.songs?.[0]?.song_path || findMediaUrl(data);
+        const finalUrl = actualData.output?.songs?.[0]?.song_path || actualData.output?.audio_url || findMediaUrl(data);
+        const finalTitle = actualData.output?.songs?.[0]?.title || actualData.output?.title || 'Hit Nou AI';
         
         if (finalUrl) {
           setAudioUrl(finalUrl);
-          setSongTitle(actualData.output?.songs?.[0]?.title || 'Hit Nou AI');
+          setSongTitle(finalTitle);
           setStep(5);
         } else {
           alert('Eroare Critică: Lipsă link audio în răspuns.');
         }
         setLoading(false);
       } else if (actualData.status === 'failed') {
-        alert('Generare eșuată. Motiv: ' + (actualData.error?.message || 'Eroare internă.'));
+        alert('Generare eșuată. Motiv: ' + (actualData.error?.message || 'Eroare internă Suno.'));
         setLoading(false);
       } else {
-        setTimeout(() => pollTaskStatus(taskId, apiKey, startTime), 10000);
+        setTimeout(() => pollTaskStatus(taskId, apiKey, startTime), 5000);
       }
     } catch (err) {
       console.error(err);
@@ -183,31 +184,32 @@ export default function ArtistStudio() {
     }
     
     const genreData = GENRE_RULES_EN[genre] || { name: 'music', style: 'music', negative: 'noise' };
-    const langTag = language !== 'Română' ? `${language} only.` : 'Romanian only.';
     
-    // Condensed mapping for gpt_description_prompt to avoid 500 Internal Server Error (character limit)
-    const finalEssay = `STYLE: ${genreData.style}
-NO: ${genreData.negative}
-LANG: ${langTag}
-THEME: ${prompt} (mood: ${mood})
-RULES: strictly generate ${genreData.name}. NO ROCK.
-STRUCT: Intro, verse, chorus, verse, chorus, solo, outro, fade-out`;
+    // Suno uses `tags` for the absolute genre definition.
+    const sunoTags = `${genreData.style}, ${voice === 'Masculină' ? 'male vocal' : 'female vocal'}`;
+    
+    // Suno uses `prompt` for the lyrical theme and structural instructions.
+    const sunoPrompt = `Generate lyrics in ${language} language.
+Theme: ${prompt}. Mood: ${mood}.
+Structure: [Intro], [Verse 1], [Chorus], [Verse 2], [Chorus], [Instrumental Solo], [Chorus], [Outro], [Fade Out].
+Negative Constraints: Do not use ${genreData.negative}.`;
 
+    // Suno v3.5 via PiAPI (music-s)
     const payload = {
-      model: "music-u",
+      model: "music-s",
       task_type: "generate_music",
       input: {
-        gpt_description_prompt: finalEssay.substring(0, 450), // Ensure we don't hit Udio's max length limit
-        prompt: genreData.style, // Some PiAPI versions require prompt to not be empty
-        negative_tags: genreData.negative,
-        lyrics_type: "generate"
+        prompt: sunoPrompt,
+        tags: sunoTags,
+        title: `${artistName || 'Artist'} - AI Hit`,
+        make_instrumental: genre === 'instrumental'
       }
     };
 
     setLastPayload(payload);
     setLoading(true);
     setProgress(5);
-    setStatusText('Inițializare Strict Format...');
+    setStatusText('Inițializare Suno AI...');
 
     try {
       const response = await fetch('https://api.piapi.ai/api/v1/task', {
@@ -262,7 +264,7 @@ STRUCT: Intro, verse, chorus, verse, chorus, solo, outro, fade-out`;
         <div className="progress-container" style={{ maxWidth: '400px', width: '100%', height: '12px', background: 'rgba(255,255,255,0.05)', borderRadius: '100px' }}>
           <div className="progress-bar" style={{ width: `${progress}%`, height: '100%', background: 'linear-gradient(90deg, var(--primary), var(--accent))', borderRadius: '100px', transition: 'width 0.5s ease' }}></div>
         </div>
-        <p style={{ marginTop: '24px', color: 'var(--text-muted)', fontSize: '1.1rem' }}>{Math.round(progress)}% - Procesare AI (Strict Format)</p>
+        <p style={{ marginTop: '24px', color: 'var(--text-muted)', fontSize: '1.1rem' }}>{Math.round(progress)}% - Procesare Suno AI</p>
       </div>
     );
   }
@@ -394,7 +396,7 @@ STRUCT: Intro, verse, chorus, verse, chorus, solo, outro, fade-out`;
           <div style={{ marginTop: '20px', padding: '16px', background: 'rgba(255,255,255,0.03)', borderRadius: '12px', border: '1px solid var(--border-glass)' }}>
             <h4 style={{ color: 'var(--text-muted)', marginBottom: '8px' }}>💡 Notă importantă:</h4>
             <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem', lineHeight: 1.4 }}>
-              Tema ta va fi încorporată cu o restricție absolută de stil. Genul va rămâne {genre ? (GENRE_RULES_EN[genre]?.name || genre) : 'neselectat'}.
+              Tema ta va fi încorporată cu o restricție absolută de stil. Genul va rămâne {genre ? (GENRE_RULES_EN[genre]?.name || genre) : 'neselectat'}. Folosim motorul SUNO pentru respectarea strictă a genurilor balcanice.
             </p>
           </div>
           
@@ -403,15 +405,15 @@ STRUCT: Intro, verse, chorus, verse, chorus, solo, outro, fade-out`;
               onClick={() => setDevMode(!devMode)}
               style={{ background: 'transparent', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}
             >
-              <Code size={16} /> {devMode ? 'Ascunde Debug' : 'Arată gpt_description_prompt (Debug)'}
+              <Code size={16} /> {devMode ? 'Ascunde Debug' : 'Arată Payload Suno (Debug)'}
             </button>
           </div>
           
           {devMode && lastPayload && (
             <div style={{ marginTop: '16px', padding: '16px', background: 'rgba(0,0,0,0.5)', borderRadius: '8px', border: '1px dashed var(--text-muted)' }}>
-              <div style={{ color: 'var(--success)', fontSize: '0.8rem', marginBottom: '8px' }}>gpt_description_prompt TRIMIS ACUM CĂTRE UDIO:</div>
+              <div style={{ color: 'var(--success)', fontSize: '0.8rem', marginBottom: '8px' }}>PAYLOAD CĂTRE SUNO API:</div>
               <pre style={{ color: '#fff', fontSize: '0.85rem', whiteSpace: 'pre-wrap', fontFamily: 'monospace', margin: 0 }}>
-                {lastPayload.input.gpt_description_prompt}
+                {JSON.stringify(lastPayload, null, 2)}
               </pre>
             </div>
           )}
