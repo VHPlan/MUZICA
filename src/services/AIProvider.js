@@ -149,8 +149,7 @@ export const generateMusicTask = async (settings, provider, apiKey) => {
         prompt: promptData.prompt ? promptData.prompt : (promptData || ""),
         tags: promptData.tags ? sanitizeString(promptData.tags) : "",
         title: sanitizeString(`Hit - ${settings.genre}`),
-        make_instrumental: false,
-        wait_audio: false
+        make_instrumental: false
       }
     };
   } else if (provider === 'udio') {

@@ -67,6 +67,52 @@ export default function PremiumDashboard({ task, onReset, goToLibrary }) {
     );
   }
 
+  if (task && task.status === 'error') {
+    return (
+      <motion.div 
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        style={{ padding: '80px 20px', textAlign: 'center', maxWidth: '600px', margin: '0 auto' }}
+      >
+        <div className="glass-panel" style={{ padding: '60px 40px', border: '1px solid var(--error)' }}>
+          <h1 style={{ fontSize: '2rem', marginBottom: '16px', color: 'var(--error)', fontWeight: 800 }}>Eroare la Generare</h1>
+          <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem', marginBottom: '32px' }}>
+            A apărut o problemă în comunicarea cu serverele AI. <br/>
+            Mesaj: {task.rawResponse}
+          </p>
+          
+          <button className="btn-secondary" style={{ width: '100%', marginBottom: '16px', background: 'transparent', border: '1px dashed var(--border-glass)' }} onClick={() => setShowDebug(!showDebug)}>
+            {showDebug ? 'Ascunde Debug' : '⚙️ Arată Debug Mode'}
+          </button>
+
+          <AnimatePresence>
+            {showDebug && (
+              <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }} style={{ overflow: 'hidden' }}>
+                <div style={{ padding: '16px', background: '#0a0a0a', borderRadius: '12px', border: '1px solid var(--border-glass)', textAlign: 'left', marginBottom: '24px' }}>
+                  <strong style={{ color: '#9ca3af' }}>Răspuns PiAPI (Eroare):</strong>
+                  <pre style={{ background: '#000', padding: '12px', borderRadius: '8px', fontSize: '0.8rem', color: 'var(--error)', overflowX: 'auto', marginTop: '8px' }}>
+                    {JSON.stringify(task.rawResponse, null, 2)}
+                  </pre>
+                  <strong style={{ color: '#9ca3af', display: 'block', marginTop: '16px' }}>Payload trimis:</strong>
+                  <pre style={{ background: '#000', padding: '12px', borderRadius: '8px', fontSize: '0.8rem', color: '#a78bfa', overflowX: 'auto', marginTop: '8px' }}>
+                    {JSON.stringify(task.payloadSent, null, 2)}
+                  </pre>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          <div style={{ display: 'flex', gap: '16px', justifyContent: 'center' }}>
+            <button className="btn-primary" onClick={onReset} style={{ padding: '16px 32px', fontSize: '1.1rem' }}>
+              Încearcă din nou
+            </button>
+            <button className="btn-secondary" onClick={goToLibrary}>Mergi la Bibliotecă</button>
+          </div>
+        </div>
+      </motion.div>
+    );
+  }
+
   const { genre, energy, instruments, speedMode } = task.settings;
 
   return (
