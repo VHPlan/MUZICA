@@ -28,7 +28,7 @@ const PRESETS = [
   { id: 'petrecere', icon: '🥂', label: 'Petrecere', settings: { genre: 'Manele', subgenre: 'Petrecere', instruments: ['Tarabană', 'Acordeon'], tempo: 'Rapid', energy: 100, voice: 'Masculină', atmosphere: 'Petrecere' } }
 ];
 
-export default function ArtistStudio({ startGlobalGeneration, isGenerating }) {
+export default function ArtistStudio({ startGlobalGeneration }) {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [progress, setProgress] = useState(0);
@@ -109,11 +109,6 @@ export default function ArtistStudio({ startGlobalGeneration, isGenerating }) {
   const handleGenerate = async () => {
     const apiKey = localStorage.getItem('piapi_key');
     if (!apiKey) { alert("Introduce cheia API în Setări!"); return; }
-    
-    if (isGenerating) {
-      alert("O melodie este deja în curs de generare! Așteaptă finalizarea ei.");
-      return;
-    }
 
     const settings = { genre, subgenre, energy, tempo, instruments, voice, atmosphere, language, theme, speedMode };
     startGlobalGeneration(settings, provider, apiKey);
@@ -142,23 +137,13 @@ export default function ArtistStudio({ startGlobalGeneration, isGenerating }) {
       <div style={{ animation: 'fadeIn 0.5s' }} className="glass-panel">
         <div style={{ padding: '40px', maxWidth: '600px', margin: '0 auto', textAlign: 'center' }}>
           
-          {isGenerating ? (
-            <div style={{ padding: '40px 0' }}>
-              <div style={{ width: '60px', height: '60px', borderRadius: '50%', border: '4px solid rgba(139, 92, 246, 0.3)', borderTopColor: 'var(--primary)', animation: 'spin 1s linear infinite', margin: '0 auto 24px auto' }}></div>
-              <h2 style={{ fontSize: '2rem', marginBottom: '16px' }}>Se procesează hitul tău...</h2>
-              <p style={{ color: 'var(--text-muted)', fontSize: '1.2rem', marginBottom: '32px' }}>
-                Poți părăsi această pagină. Vei fi notificat când piesa este gata și va apărea în Biblioteca ta!
-              </p>
-              <button className="btn-secondary" onClick={() => setStep(1)}>Creează o melodie nouă între timp</button>
-            </div>
-          ) : (
             <div>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px', marginBottom: '24px', color: 'var(--success)' }}>
                 <CheckCircle size={40} />
-                <h2 style={{ fontSize: '2rem', margin: 0 }}>Gata! Verifică Biblioteca.</h2>
+                <h2 style={{ fontSize: '2rem', margin: 0 }}>Cererea a fost trimisă!</h2>
               </div>
               <p style={{ color: 'var(--text-muted)', fontSize: '1.2rem', marginBottom: '32px' }}>
-                Ultima ta creație a fost salvată cu succes. Poți începe o nouă melodie sau poți asculta capodopera în tab-ul <strong>Biblioteca Mea</strong>.
+                Generarea rulează în fundal. O poți urmări în tab-ul <strong>Biblioteca Mea</strong> sau pe panoul lateral.
               </p>
               
               <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap' }}>
@@ -167,13 +152,12 @@ export default function ArtistStudio({ startGlobalGeneration, isGenerating }) {
                   style={{ width: '100%', padding: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }} 
                   onClick={() => { setStep(5); }}
                 >
-                  <Zap size={20} /> Modifică setările și generează din nou
+                  <Zap size={20} /> Modifică setările și mai generează o variantă
                 </button>
 
-                <button className="btn-secondary" style={{ width: '100%', marginTop: '16px', border: 'none', background: 'transparent', textDecoration: 'underline' }} onClick={() => setStep(1)}>Creează un alt hit de la zero</button>
+                <button className="btn-secondary" style={{ width: '100%', marginTop: '16px', border: 'none', background: 'transparent', textDecoration: 'underline' }} onClick={() => setStep(1)}>Creează un hit total nou</button>
               </div>
             </div>
-          )}
 
         </div>
       </div>
