@@ -1,4 +1,5 @@
 import { analyzeFeedback } from './FeedbackAnalyzer';
+import { formatLyricsWithStructure } from './LyricFormatter';
 
 const TRANSLATIONS = {
   voice: {
@@ -39,6 +40,8 @@ const sanitizeString = (str) => {
 
 export const buildPrompt = (settings, provider = 'suno') => {
   const { genre, energy, tempo, instruments, voice, atmosphere, theme, speedMode } = settings;
+  
+  const formattedTheme = formatLyricsWithStructure(theme);
   
   const mappedVoice = TRANSLATIONS.voice[voice] || voice;
   const mappedTempo = TRANSLATIONS.tempo[tempo] || tempo;
@@ -89,7 +92,9 @@ Voice: ${mappedVoice}. Tempo: ${mappedTempo}.
 Energy level: ${energy}/100.
 ${instrumentList ? `Instruments: ${instrumentList}.` : ''}
 Atmosphere: ${atmosphere}.
-Theme: ${theme}.
+Lyrics/Theme: 
+${formattedTheme}
+
 ${learningInjection}
 Make the chorus very catchy and memorable.
 Natural outro with fade out.`;
@@ -100,7 +105,7 @@ Natural outro with fade out.`;
     let finalTags = `romanian lyrics, ${genreTags}, ${mappedVoice}, ${mappedTempo}, energy ${energy}, ${atmosphere} atmosphere`;
     if (instrumentList) finalTags += `, ${instrumentList}`;
 
-    let sunoPrompt = `Romanian lyrics only.\n${genreDirectives}\nTheme: ${theme}.\n${learningInjection} Natural outro, fade out.`;
+    let sunoPrompt = `Romanian lyrics only.\n${genreDirectives}\n\n${formattedTheme}\n\n${learningInjection} Natural outro, fade out.`;
     
     return {
       prompt: sunoPrompt,
