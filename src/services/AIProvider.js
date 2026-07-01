@@ -91,7 +91,7 @@ export const buildPrompt = (settings, provider = 'suno') => {
   const isCustomLyrics = formattedTheme.split(/\s+/).length > 8;
 
   if (provider === 'udio') {
-    const stylePrompt = `Romanian style, ${genreDirectives} Voice: ${mappedVoice}, Tempo: ${mappedTempo}, Energy: ${energy}/100, ${instrumentList ? `Instruments: ${instrumentList},` : ''} Atmosphere: ${atmosphere}. ${learningInjection}`;
+    const stylePrompt = `romanian, ${genreTags}, ${mappedVoice}, ${mappedTempo}, energy ${energy}, ${atmosphere} atmosphere${instrumentList ? `, ${instrumentList}` : ''}. ${genreDirectives} ${learningInjection}`;
     
     return {
       style: stylePrompt,
@@ -101,12 +101,17 @@ export const buildPrompt = (settings, provider = 'suno') => {
   }
 
   if (provider === 'suno') {
-    let finalTags = `romanian, ${genreTags}, ${mappedVoice}, ${mappedTempo}, energy ${energy}, ${atmosphere} atmosphere`;
-    if (instrumentList) finalTags += `, ${instrumentList}`;
+    // Suno 'tags' has a hard 120 character limit, so we keep it minimal
+    let finalTags = `romanian, ${genreTags}, ${mappedVoice}, ${mappedTempo}`.substring(0, 119);
+    
+    // For Suno, we inject the full complex style instructions at the very top of the lyrics as a meta-tag!
+    let styleMetaTag = `[Style: ${genreDirectives} Instruments: ${instrumentList || 'none'}. Vibe: ${atmosphere}, Energy: ${energy}/100]`;
+    
+    let sunoPrompt = `${styleMetaTag}\\n\\n${formattedTheme}`;
 
     return {
       style: finalTags,
-      lyrics: formattedTheme,
+      lyrics: sunoPrompt,
       isCustomLyrics
     };
   }
