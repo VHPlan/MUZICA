@@ -10,6 +10,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState('home');
   const [activeTasks, setActiveTasks] = useState([]);
   const [library, setLibrary] = useState([]);
+  const [currentTrack, setCurrentTrack] = useState(null);
 
   useEffect(() => {
     const saved = localStorage.getItem('ai_music_library');
@@ -58,14 +59,39 @@ export default function App() {
           const res = await checkTaskStatus(task.externalId, task.apiKey);
           const data = res.data || res;
           if (data.status === 'completed' || data.status === 'success') {
+            let extractedAudio = '';
+            let extractedVideo = '';
+            let extractedImage = '';
+            
+            // Try different structures known for PiAPI (Suno vs Udio)
+            const resultData = data.data || data;
+            
+            if (resultData.clips && resultData.clips.length > 0) {
+              extractedAudio = resultData.clips[0].audio_url;
+              extractedVideo = resultData.clips[0].video_url;
+              extractedImage = resultData.clips[0].image_url;
+            } else if (resultData.task_result) {
+              extractedAudio = resultData.task_result.audio_url || (resultData.task_result.clips && resultData.task_result.clips[0]?.audio_url) || '';
+              extractedVideo = resultData.task_result.video_url || (resultData.task_result.clips && resultData.task_result.clips[0]?.video_url) || '';
+              extractedImage = resultData.task_result.image_url || (resultData.task_result.clips && resultData.task_result.clips[0]?.image_url) || '';
+            } else {
+              extractedAudio = resultData.audio_url || '';
+              extractedVideo = resultData.video_url || '';
+              extractedImage = resultData.image_url || '';
+            }
+
             const finalTrack = {
               id: task.id,
               title: `Hit - ${task.settings.genre}`,
               genre: task.settings.genre,
               date: new Date().toLocaleDateString(),
+              audioUrl: extractedAudio,
+              videoUrl: extractedVideo,
+              imageUrl: extractedImage,
+              rawResponse: data // store full response for debug just in case
             };
             saveToLibrary(finalTrack);
-            setActiveTasks(prev => prev.map(t => t.id === task.id ? { ...t, progress: 100, status: 'completed' } : t));
+            setActiveTasks(prev => prev.map(t => t.id === task.id ? { ...t, progress: 100, status: 'completed', finalTrack } : t));
           } else if (data.status === 'failed' || data.status === 'error') {
             setActiveTasks(prev => prev.map(t => t.id === task.id ? { ...t, status: 'error', progress: 100, rawResponse: 'Eroare generare.' } : t));
           } else {
@@ -195,14 +221,19 @@ export default function App() {
             ) : (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))', gap: '32px' }}>
                 {library.map((track) => (
-                  <div key={track.id} style={{ display: 'flex', flexDirection: 'column', gap: '16px', cursor: 'pointer', group: 'true' }}>
-                    <div style={{ aspectRatio: '1', background: 'var(--bg-card)', borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', position: 'relative' }}>
-                      <div className="hero-mesh" style={{ opacity: 0.5, filter: 'blur(40px)' }} />
-                      <Play size={48} color="#fff" style={{ opacity: 0.5, transition: 'opacity 0.3s' }} />
+                  <div 
+                    key={track.id} 
+                    style={{ display: 'flex', flexDirection: 'column', gap: '16px', cursor: 'pointer', group: 'true' }}
+                    onClick={() => setCurrentTrack(track)}
+                  >
+                    <div style={{ aspectRatio: '1', background: track.imageUrl ? `url(${track.imageUrl}) center/cover` : 'var(--bg-card)', borderRadius: 'var(--radius-md)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', position: 'relative' }}>
+                      {!track.imageUrl && <div className="hero-mesh" style={{ opacity: 0.5, filter: 'blur(40px)' }} />}
+                      <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.3)', transition: 'background 0.3s' }} className="hover-overlay" />
+                      <Play size={48} color="#fff" style={{ opacity: 0.8, zIndex: 10 }} />
                     </div>
                     <div>
                       <h4 style={{ fontSize: '1.2rem', marginBottom: '4px' }}>{track.title}</h4>
-                      <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>{track.date}</div>
+                      <div style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>{track.date} {track.audioUrl ? '• Gata' : '• Lipsă Audio'}</div>
                     </div>
                   </div>
                 ))}
@@ -211,6 +242,54 @@ export default function App() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* BOTTOM PLAYER */}
+      <AnimatePresence>
+        {currentTrack && (
+          <motion.div 
+            initial={{ y: 100 }} 
+            animate={{ y: 0 }} 
+            exit={{ y: 100 }} 
+            style={{ 
+              position: 'fixed', bottom: 0, left: 0, right: 0, 
+              background: 'rgba(13, 17, 23, 0.95)', backdropFilter: 'blur(16px)', 
+              borderTop: '1px solid var(--border-light)', padding: '16px 48px', 
+              display: 'flex', alignItems: 'center', gap: '32px', zIndex: 1000 
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', minWidth: '200px' }}>
+              <div style={{ width: '48px', height: '48px', borderRadius: '8px', background: currentTrack.imageUrl ? `url(${currentTrack.imageUrl}) center/cover` : 'var(--bg-card)' }} />
+              <div>
+                <div style={{ fontWeight: 600, fontSize: '1rem' }}>{currentTrack.title}</div>
+                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)' }}>MuzicaAI Studio</div>
+              </div>
+            </div>
+            
+            <div style={{ flex: 1, display: 'flex', justifyContent: 'center' }}>
+              {currentTrack.audioUrl ? (
+                <audio controls src={currentTrack.audioUrl} autoPlay style={{ width: '100%', maxWidth: '600px', height: '40px' }} />
+              ) : (
+                <div style={{ color: 'var(--danger)' }}>Eroare: URL Audio Indisponibil în API</div>
+              )}
+            </div>
+
+            <div style={{ display: 'flex', gap: '16px', minWidth: '200px', justifyContent: 'flex-end' }}>
+              {currentTrack.audioUrl && (
+                <a href={currentTrack.audioUrl} download target="_blank" rel="noreferrer" className="btn-secondary" style={{ padding: '8px 16px', fontSize: '0.9rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  MP3
+                </a>
+              )}
+              {currentTrack.videoUrl && (
+                <a href={currentTrack.videoUrl} download target="_blank" rel="noreferrer" className="btn-secondary" style={{ padding: '8px 16px', fontSize: '0.9rem', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  MP4
+                </a>
+              )}
+              <button className="nav-btn" onClick={() => setCurrentTrack(null)}>Închide</button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
     </div>
   );
 }
