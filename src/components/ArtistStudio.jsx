@@ -22,6 +22,33 @@ const MOODS = [
   { id: 'motivational', label: 'Motivational', icon: '🔥' }
 ];
 
+const GLOBAL_RULES = `
+Structura melodiei trebuie să includă:
+- intro instrumental
+- strofe
+- refren
+- refren final repetat
+- outro instrumental de minimum 15-20 secunde
+- fade out natural la final
+
+IMPORTANT:
+Nu opri melodia brusc.
+Nu tăia sunetul la final.
+După ultimul vers, continuă instrumentalul.
+Încheie melodia cu un outro armonios și fade out lent.
+Ultimul acord trebuie să se stingă treptat.`;
+
+const GENRE_RULES = {
+  'manele': 'Generează EXCLUSIV o manea modernă. Nu folosi alte stiluri.',
+  'trap': 'Generează EXCLUSIV trap. Nu folosi alte stiluri.',
+  'rock': 'Generează EXCLUSIV rock. Nu folosi alte stiluri.',
+  'pop': 'Generează EXCLUSIV pop. Nu folosi alte stiluri.',
+  'house': 'Generează EXCLUSIV house. Nu folosi alte stiluri.',
+  'hiphop': 'Generează EXCLUSIV hip hop. Nu folosi alte stiluri.',
+  'lautareasca': 'IMPORTANT: Generează EXCLUSIV o melodie în stil Muzică de Petrecere (Țigănească). Nu folosi elemente pop, trap, rock, EDM, house, reggaeton sau alte stiluri. Instrumentele trebuie să fie specifice acestui gen (vioară, acordeon, țambal, contrabas etc.). Păstrează stilul pe toată durata melodiei.',
+  'instrumental': 'Generează EXCLUSIV muzică instrumentală (fără voce).'
+};
+
 export default function ArtistStudio() {
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -118,8 +145,9 @@ export default function ArtistStudio() {
       return;
     }
     
-    // Asamblăm prompt-ul final premium
-    const finalPrompt = `A ${genre} song with ${voice} vocals in ${language}. Mood: ${mood}. ${prompt}`;
+    // Asamblăm prompt-ul final premium cu regulile stricte
+    const genreRule = GENRE_RULES[genre] || 'Generează exclusiv în acest stil muzical.';
+    const finalPrompt = `${genreRule}\n\nTema melodiei (Voce ${voice}, limba ${language}, mood: ${mood}):\n${prompt}\n\n${GLOBAL_RULES}`;
 
     setLoading(true);
     setProgress(5);
