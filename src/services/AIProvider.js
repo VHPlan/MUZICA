@@ -78,6 +78,9 @@ export const buildPrompt = (settings, provider = 'suno') => {
   } else if (genre === 'Lăutărească') {
     genreDirectives = "Authentic Romanian lăutărească music, live taraf feeling, acoustic instruments, violin, accordion, cimbalom (țambal), traditional acoustic rhythm.";
     genreTags = "lautareasca, taraf, gypsy folk, live acoustic, cimbalom";
+  } else if (genre === 'Țigănești') {
+    genreDirectives = "Authentic fiery Gypsy folk music (muzică țigănească autentică de joc), extreme acoustic virtuosity, very fast tempo, highly improvised violin and accordion solos, dynamic rhythm, raw traditional Roma culture vibe.";
+    genreTags = "gypsy folk, muzica tiganeasca, fast acoustic, virtuoso violin, roma music, energetic";
   } else {
     genreDirectives = `Romanian ${genre} style, balkan oriental pop.`;
     genreTags = "balkan, oriental, pop";

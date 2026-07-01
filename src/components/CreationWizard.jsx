@@ -9,7 +9,8 @@ const GENRES = [
   { id: 'manele_jale', title: 'Manele de Jale', desc: 'Emoțional, ritm lent' },
   { id: 'petrecere', title: 'Petrecere', desc: 'Acordeon și vioară live' },
   { id: 'balcanic', title: 'Balkan Brass', desc: 'Trâmbițe și alămuri' },
-  { id: 'lautareasca', title: 'Lăutărească', desc: 'Instrumental clasic' }
+  { id: 'lautareasca', title: 'Lăutărească', desc: 'Instrumental clasic' },
+  { id: 'tiganesti', title: 'Țigănești', desc: 'Gypsy folk, virtuozitate' }
 ];
 
 export default function CreationWizard({ onGenerate }) {
