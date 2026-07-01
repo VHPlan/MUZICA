@@ -9,10 +9,10 @@ function HeroSection({ onStart }) {
   return (
     <div style={{ textAlign: 'center', padding: '100px 20px', minHeight: '60vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
       <h1 style={{ fontSize: '3.5rem', fontWeight: 700, marginBottom: '24px', background: 'linear-gradient(to right, #8B5CF6, #06B6D4)', WebkitBackgroundClip: 'text', color: 'transparent' }}>
-        🎵 Creează hituri cu Inteligență Artificială
+        🎵 Studio AI pentru Manele & Muzică Orientală
       </h1>
       <p style={{ fontSize: '1.25rem', color: 'var(--text-muted)', marginBottom: '40px', maxWidth: '600px', lineHeight: 1.6 }}>
-        Generează melodii complete în câteva minute folosind AI. Platforma ta premium pentru o experiență de studio virtuală desăvârșită.
+        Platforma ta premium dedicată exclusiv producției de manele, muzică lăutărească și instrumentale orientale de tarabană și bass.
       </p>
       <button onClick={onStart} className="btn-primary glow-btn" style={{ fontSize: '1.2rem', padding: '16px 36px' }}>
         🚀 Începe Magia

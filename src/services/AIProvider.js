@@ -29,36 +29,26 @@ const TRANSLATIONS = {
   }
 };
 
-const GLOBAL_NEGATIVE = 'Do not generate jazz, swing, blues, soul, funk, lounge, acoustic jazz, sax jazz.';
-
-const NEGATIVE_RULES = {
-  'Manele': `Do not generate rock. Do not generate pop. Do not generate EDM. Do not generate trap. ${GLOBAL_NEGATIVE}`,
-  'Lăutărească': `Do not generate rock. Do not generate EDM. Do not generate trap. ${GLOBAL_NEGATIVE}`,
-  'Trap': `Do not generate rock. Do not generate acoustic folk. ${GLOBAL_NEGATIVE}`,
-  'Pop': `Do not generate rock. Do not generate metal. ${GLOBAL_NEGATIVE}`,
-  'Rock': `Do not generate EDM. Do not generate trap. ${GLOBAL_NEGATIVE}`,
-  'House': `Do not generate acoustic. Do not generate rock. ${GLOBAL_NEGATIVE}`
-};
+const GLOBAL_NEGATIVE = 'No jazz, no rock, no pop, no EDM, no trap, no hip-hop, no country.';
+const GLOBAL_PREFIX = `STRICT ROMANIAN ORIENTAL MUSIC ONLY.\nModern Romanian manele / Balkan oriental party style.\nRomanian lyrics only.\n${GLOBAL_NEGATIVE}\n`;
 
 /**
  * Builds the exact prompt structure based on the provider and settings.
  */
 export const buildPrompt = (settings, provider = 'suno') => {
-  const { genre, subgenre, energy, tempo, instruments, voice, atmosphere, language, theme, speedMode } = settings;
+  const { genre, energy, tempo, instruments, voice, atmosphere, theme, speedMode } = settings;
   
   const mappedVoice = TRANSLATIONS.voice[voice] || voice;
   const mappedTempo = TRANSLATIONS.tempo[tempo] || tempo;
-  const mappedLanguage = TRANSLATIONS.language[language] || language;
   
   const instrumentList = instruments && instruments.length > 0 
     ? instruments.map(i => TRANSLATIONS.instruments[i] || i).join(', ')
     : 'Standard band';
 
-  const negative = NEGATIVE_RULES[genre] || 'Do not change genre.';
-
   if (provider === 'udio') {
-    return `Generate ONLY modern ${mappedLanguage} ${subgenre?.toLowerCase() || ''} ${genre?.toLowerCase() || ''}.
-${mappedLanguage} lyrics only.
+    return `${GLOBAL_PREFIX}
+Generate ONLY modern Romanian ${genre?.toLowerCase() || ''}.
+Romanian lyrics only.
 ${mappedVoice}.
 ${mappedTempo}.
 High energy level (${energy}/100).
@@ -67,25 +57,31 @@ ${atmosphere} atmosphere.
 Very catchy chorus.
 Theme:
 ${theme}
-
-${negative}
-Do not change genre.
 Do not end abruptly.
 Outro with fade out.`;
   }
 
   // SUNO FORMAT
   if (provider === 'suno') {
-    // Exact requested prompt for Club Manele
-    if (genre === 'Manele' && (subgenre === 'Club' || subgenre === 'Petrecere')) {
+    
+    // Preset Prompts
+    if (genre === 'Tarabană & Bass') {
       return {
-        prompt: `Modern Romanian club manele, Balkan oriental party music, dominant darbuka/tarabană rhythm, deep bass, oriental keyboard riff, accordion accents, short violin solo, male Romanian vocal, fast dance groove, repetitive catchy chorus, Romanian lyrics only. Theme: ${theme}. No jazz, no swing, no blues, no funk, no rock, no electric guitar, no EDM, no trap, no hip-hop. Natural outro, fade out.`,
-        tags: 'club manele, darbuka, oriental'
+        prompt: `${GLOBAL_PREFIX}\nDominant darbuka/tarabană rhythm, deep bass, oriental keyboard riff, fast dance groove, repetitive catchy hook, Romanian party atmosphere. Theme: ${theme}. Natural outro, fade out.`,
+        tags: 'tarabana, bass, oriental, party'
       };
     }
 
+    if (genre === 'Lăutărească / Țigănească') {
+      return {
+        prompt: `${GLOBAL_PREFIX}\nAuthentic Romanian lăutărească party music, live taraf feeling, violin, accordion, cimbalom, double bass, acoustic guitar, traditional rhythm. Theme: ${theme}. Natural outro, fade out.`,
+        tags: 'lautareasca, taraf, gypsy, live'
+      };
+    }
+
+    // Default Fallback
     let tags = [
-      `Modern ${mappedLanguage} ${subgenre?.toLowerCase() || ''} ${genre?.toLowerCase() || ''}`,
+      `Romanian ${genre?.toLowerCase() || ''}`,
       ...instruments.map(i => TRANSLATIONS.instruments[i] || i),
       mappedVoice,
       mappedTempo,
@@ -96,10 +92,10 @@ Outro with fade out.`;
     let promptText = '';
     if (speedMode === 'Rapid') {
       tags += ', catchy chorus';
-      promptText = `${tags}. Theme: ${theme}. ${negative}`;
+      promptText = `${GLOBAL_PREFIX}\n${tags}. Theme: ${theme}.`;
     } else {
       tags += ', catchy repetitive chorus';
-      promptText = `${tags}, ${mappedLanguage} lyrics only. Theme: ${theme}. ${negative} Natural outro, fade out.`;
+      promptText = `${GLOBAL_PREFIX}\n${tags}, Romanian lyrics only. Theme: ${theme}. Natural outro, fade out.`;
     }
 
     return {
