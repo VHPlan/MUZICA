@@ -88,35 +88,28 @@ export const buildPrompt = (settings, provider = 'suno') => {
 
   const { promptModifier, negativeModifier } = analyzeFeedback();
   const learningInjection = `${promptModifier} ${negativeModifier}`;
+  const isCustomLyrics = formattedTheme.split(/\s+/).length > 8;
 
   if (provider === 'udio') {
-    const udioPrompt = `Romanian lyrics only. ${genreDirectives}
-Voice: ${mappedVoice}. Tempo: ${mappedTempo}.
-Energy level: ${energy}/100.
-${instrumentList ? `Instruments: ${instrumentList}.` : ''}
-Atmosphere: ${atmosphere}.
-Lyrics/Theme: 
-${formattedTheme}
-
-${learningInjection}
-Make the chorus very catchy and memorable.
-Natural outro with fade out.`;
-    return udioPrompt;
-  }
-
-  if (provider === 'suno') {
-    let finalTags = `romanian lyrics, ${genreTags}, ${mappedVoice}, ${mappedTempo}, energy ${energy}, ${atmosphere} atmosphere`;
-    if (instrumentList) finalTags += `, ${instrumentList}`;
-
-    let sunoPrompt = `Romanian lyrics only.\n${genreDirectives}\n\n${formattedTheme}\n\n${learningInjection} Natural outro, fade out.`;
+    const stylePrompt = `Romanian style, ${genreDirectives} Voice: ${mappedVoice}, Tempo: ${mappedTempo}, Energy: ${energy}/100, ${instrumentList ? `Instruments: ${instrumentList},` : ''} Atmosphere: ${atmosphere}. ${learningInjection}`;
     
     return {
-      prompt: sunoPrompt,
-      tags: finalTags
+      style: stylePrompt,
+      lyrics: formattedTheme,
+      isCustomLyrics
     };
   }
 
-  return '';
+  if (provider === 'suno') {
+    let finalTags = `romanian, ${genreTags}, ${mappedVoice}, ${mappedTempo}, energy ${energy}, ${atmosphere} atmosphere`;
+    if (instrumentList) finalTags += `, ${instrumentList}`;
+
+    return {
+      style: finalTags,
+      lyrics: formattedTheme,
+      isCustomLyrics
+    };
+  }
 };
 
 /**
@@ -135,10 +128,10 @@ export const generateMusicTask = async (settings, provider, apiKey) => {
       model: model,
       task_type: "generate_music",
       input: {
-        prompt: promptData.prompt ? promptData.prompt : (promptData || ""),
-        tags: promptData.tags ? sanitizeString(promptData.tags) : "",
-        title: sanitizeString(`Hit - ${settings.genre}`),
-        make_instrumental: false
+        prompt: promptData.lyrics || "[Instrumental]",
+        tags: sanitizeString(promptData.style),
+        title: sanitizeString(`Proiect ${settings.genre}`),
+        make_instrumental: !promptData.lyrics
       }
     };
   } else if (provider === 'udio') {
@@ -147,9 +140,10 @@ export const generateMusicTask = async (settings, provider, apiKey) => {
       model: model,
       task_type: "generate_music",
       input: {
-        gpt_description_prompt: promptData.prompt || promptData,
+        gpt_description_prompt: promptData.style,
+        prompt: promptData.lyrics,
         negative_tags: GLOBAL_NEGATIVE,
-        lyrics_type: "generate"
+        lyrics_type: promptData.isCustomLyrics ? "user" : "generate"
       }
     };
   }
