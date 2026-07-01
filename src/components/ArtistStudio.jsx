@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Play, Download, Share2, Heart, Mic2, Disc3, Smile, FileText, Code } from 'lucide-react';
 
 const GENRES = [
+  { id: 'manea_petrecere', label: 'Manea Petrecere Modernă', icon: '💃' },
   { id: 'manele', label: 'Manele', icon: '🎤' },
   { id: 'trap', label: 'Trap', icon: '🎧' },
   { id: 'rock', label: 'Rock', icon: '🎸' },
@@ -23,6 +24,10 @@ const MOODS = [
 ];
 
 const GENRE_RULES_EN = {
+  'manea_petrecere': {
+    style: 'Romanian manele, oriental Balkan pop-folk, wedding party manea, male vocal, emotional vocal ornaments, accordion, violin, darbuka, keyboard, deep bass, catchy chorus, dance rhythm',
+    negative: 'rock, electric guitar, metal, pop-rock, EDM, trap, hip-hop'
+  },
   'manele': {
     style: 'modern romanian manele, oriental balkan pop-folk, accordion, violin, darbuka, keyboard, romanian male vocal, wedding party, catchy chorus',
     negative: 'rock, metal, electric guitar, rock drums, pop-rock, punk, grunge, EDM, trap, hip-hop'
