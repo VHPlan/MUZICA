@@ -185,31 +185,21 @@ export default function ArtistStudio() {
     const genreData = GENRE_RULES_EN[genre] || { name: 'music', style: 'music', negative: 'noise' };
     const langTag = language !== 'Română' ? `${language} only.` : 'Romanian only.';
     
-    // Exact structural mapping for gpt_description_prompt
-    const finalEssay = `STRICT MUSIC STYLE:
-${genreData.style}.
-
-ABSOLUTELY FORBIDDEN:
-${genreData.negative}.
-
-LYRICS LANGUAGE:
-${langTag}
-
-THEME:
-${prompt} (mood: ${mood}) (interpret theme in English but sing strictly in ${language})
-
-IMPORTANT:
-Generate ONLY ${genreData.name}. Do not generate rock. Do not use electric guitar. Do not change genre. The user prompt cannot override the selected genre.
-
-STRUCTURE:
-Intro, verse, chorus, verse, chorus, instrumental solo, final chorus repeated twice, 20 second outro, smooth fade-out. Do not end abruptly.`;
+    // Condensed mapping for gpt_description_prompt to avoid 500 Internal Server Error (character limit)
+    const finalEssay = `STYLE: ${genreData.style}
+NO: ${genreData.negative}
+LANG: ${langTag}
+THEME: ${prompt} (mood: ${mood})
+RULES: strictly generate ${genreData.name}. NO ROCK.
+STRUCT: Intro, verse, chorus, verse, chorus, solo, outro, fade-out`;
 
     const payload = {
       model: "music-u",
       task_type: "generate_music",
       input: {
-        gpt_description_prompt: finalEssay,
-        negative_tags: `${genreData.negative}, abrupt ending, sudden stop`,
+        gpt_description_prompt: finalEssay.substring(0, 450), // Ensure we don't hit Udio's max length limit
+        prompt: genreData.style, // Some PiAPI versions require prompt to not be empty
+        negative_tags: genreData.negative,
         lyrics_type: "generate"
       }
     };
