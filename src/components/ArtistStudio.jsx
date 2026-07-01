@@ -25,31 +25,31 @@ const MOODS = [
 const GENRE_RULES_EN = {
   'manele': {
     style: 'modern romanian manele, oriental balkan pop-folk, accordion, violin, darbuka, keyboard, romanian male vocal, wedding party, catchy chorus',
-    negative: 'rock, metal, electric guitar, rock drums, pop-rock, punk, grunge, EDM, trap, hip-hop, electronic'
+    negative: 'rock, metal, electric guitar, rock drums, pop-rock, punk, grunge, EDM, trap, hip-hop'
   },
   'lautareasca': {
-    style: 'traditional Romanian lautareasca party music, authentic taraf style, Romanian gypsy folk party song, male emotional vocal, violin, accordion, cimbalom, double bass, acoustic guitar, live wedding band energy, Balkan/Romanian folk dance',
-    negative: 'rock, electric guitar, metal, pop-rock, EDM, trap, hip-hop, rap, synthesizer'
+    style: 'traditional romanian lautareasca party music, authentic taraf, violin, accordion, cimbalom, double bass, acoustic guitar, balkan folk dance, romanian male vocal',
+    negative: 'rock, metal, electric guitar, rock drums, pop-rock, EDM, trap, hip-hop, synthwave'
   },
   'trap': {
-    style: 'modern trap beat, heavy 808 bass, fast hi-hats, autotune vocals, dark atmospheric synth, urban style',
-    negative: 'rock, metal, acoustic guitar, country, classical, folk'
+    style: 'romanian trap, 808 bass, hi-hats, dark melodic beat, modern rap vocal',
+    negative: 'manele, lautareasca, rock, metal, folk, wedding music'
   },
   'pop': {
-    style: 'modern mainstream pop, upbeat, catchy melody, clear radio-ready vocals, synth-pop elements, bright energy',
-    negative: 'heavy metal, trap, hard rock, screaming vocals, grunge'
+    style: 'modern romanian pop, radio hit, catchy chorus, clean vocal, polished production',
+    negative: 'rock, metal, trap, manele, lautareasca, EDM'
   },
   'rock': {
     style: 'authentic rock music, distorted electric guitars, heavy drum beats, powerful rock vocals, bass guitar, energetic rock band performance',
-    negative: 'EDM, trap, auto-tune, hip-hop, electronic beats, pop'
+    negative: 'EDM, trap, auto-tune, hip-hop, electronic beats, pop, manele'
   },
   'house': {
     style: 'club house music, four-on-the-floor beat, 120-130 BPM, electronic synthesizers, deep bassline, dance energy',
-    negative: 'acoustic, rock, metal, country, slow tempo'
+    negative: 'acoustic, rock, metal, country, slow tempo, manele'
   },
   'hiphop': {
     style: 'classic hip-hop, boom-bap drum break, sampled melody, rap vocals, urban rhythm',
-    negative: 'rock, country, EDM, house, acoustic'
+    negative: 'rock, country, EDM, house, acoustic, manele'
   },
   'instrumental': {
     style: 'pure instrumental music, emotional cinematic arrangement, orchestral or electronic elements',
@@ -170,23 +170,37 @@ export default function ArtistStudio() {
     
     // Custom Mode Implementation
     const genreData = GENRE_RULES_EN[genre] || { style: 'music', negative: 'noise' };
-    const voiceTag = voice === 'Masculină' ? 'male vocal' : 'female vocal';
-    const langTag = language !== 'Română' ? `${language} language lyrics` : 'Romanian language lyrics';
+    const langTag = language !== 'Română' ? `${language} only.` : 'Romanian only.';
     
-    // Manual tags for Udio (this forces Udio to obey the genre without hallucinating)
-    const customTags = `${genreData.style}, ${voiceTag}, ${langTag}, mood: ${mood}, intro, verse, chorus, verse, chorus, instrumental solo, final chorus repeated twice, 15-20 second instrumental outro, smooth fade-out, harmonious outro, natural ending`;
-    const negativeTags = genreData.negative + ', abrupt ending, sudden stop, cut off';
-    
-    // The theme prompt is strictly the subject, wrapped in translation instructions if needed
-    const themePrompt = `A ${language} song about: ${prompt}. (IMPORTANT: strictly follow the exact manual tags provided. Do not invent new genres. Do not end abruptly.)`;
+    // Exact requested Final Prompt Essay format
+    const essayPrompt = \`STYLE:
+\${genreData.style}
+
+NEGATIVE STYLE:
+\${genreData.negative}
+
+LYRICS LANGUAGE:
+\${langTag}
+
+THEME:
+\${prompt} (Please interpret this theme in English but sing in \${language})
+
+IMPORTANT:
+The selected genre is mandatory. Do not change the genre. Do not generate rock unless Rock is selected. The user prompt cannot override the selected genre.
+
+STRUCTURE:
+Intro, verse, chorus, verse, chorus, instrumental solo, final chorus repeated twice, 15-20 second outro, smooth fade-out. Do not end abruptly.\`;
+
+    // Warn if PiAPI might ignore separate custom fields (developer console as requested)
+    console.warn("Provider does not support strict genre control. Results may ignore selected genre if essay overrides tags.");
 
     const payload = {
       model: "music-u",
       task_type: "generate_music",
       input: {
-        prompt: customTags, // Forces manual tags in PiAPI Custom Mode
-        negative_tags: negativeTags, // Strict negative constraints
-        gpt_description_prompt: themePrompt, // Context/Theme for lyrics generation
+        prompt: \`\${genreData.style}, \${voice} vocal, mood \${mood}, intro, verse, chorus, instrumental solo, outro, fade out\`, // Manual tags parameter
+        negative_tags: \`\${genreData.negative}, abrupt ending, sudden stop\`, // Strict negative parameter
+        gpt_description_prompt: essayPrompt, // The essay structure the user strictly requested
         lyrics_type: "generate"
       }
     };
