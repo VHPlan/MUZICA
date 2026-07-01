@@ -88,31 +88,34 @@ export const buildPrompt = (settings, provider = 'suno') => {
 
   const { promptModifier, negativeModifier } = analyzeFeedback();
   const learningInjection = `${promptModifier} ${negativeModifier}`;
-  const isCustomLyrics = formattedTheme.split(/\s+/).length > 8;
+  const isCustomLyrics = theme && theme.split(/\\s+/).length > 5;
+  const isInstrumental = !theme || theme.trim() === '' || voice === 'Fără Voce';
 
   if (provider === 'udio') {
     const stylePrompt = `romanian, ${genreTags}, ${mappedVoice}, ${mappedTempo}, energy ${energy}, ${atmosphere} atmosphere${instrumentList ? `, ${instrumentList}` : ''}. ${genreDirectives} ${learningInjection}`;
     
     return {
       style: stylePrompt,
-      lyrics: formattedTheme,
-      isCustomLyrics
+      lyrics: isInstrumental ? '' : formattedTheme,
+      isCustomLyrics,
+      isInstrumental
     };
   }
 
   if (provider === 'suno') {
-    // Suno 'tags' has a hard 120 character limit, so we keep it minimal
-    let finalTags = `romanian, ${genreTags}, ${mappedVoice}, ${mappedTempo}`.substring(0, 119);
+    let finalTags = `romanian, ${genreTags}, ${mappedTempo}, ${atmosphere}`.substring(0, 119);
     
-    // For Suno, we inject the full complex style instructions at the very top of the lyrics as a meta-tag!
-    let styleMetaTag = `[Style: ${genreDirectives} Instruments: ${instrumentList || 'none'}. Vibe: ${atmosphere}, Energy: ${energy}/100]`;
-    
-    let sunoPrompt = `${styleMetaTag}\\n\\n${formattedTheme}`;
+    let sunoPrompt = '';
+    if (!isInstrumental) {
+      let styleMetaTag = `[Style: ${genreDirectives} Instruments: ${instrumentList || 'none'}. Vibe: ${atmosphere}, Energy: ${energy}/100]`;
+      sunoPrompt = `${styleMetaTag}\\n\\n${formattedTheme}`;
+    }
 
     return {
       style: finalTags,
       lyrics: sunoPrompt,
-      isCustomLyrics
+      isCustomLyrics,
+      isInstrumental
     };
   }
 };
@@ -133,22 +136,26 @@ export const generateMusicTask = async (settings, provider, apiKey) => {
       model: model,
       task_type: "generate_music",
       input: {
-        prompt: promptData.lyrics || "[Instrumental]",
+        prompt: promptData.isInstrumental ? "" : promptData.lyrics,
         tags: sanitizeString(promptData.style),
         title: sanitizeString(`Proiect ${settings.genre}`),
-        make_instrumental: !promptData.lyrics
+        make_instrumental: promptData.isInstrumental
       }
     };
   } else if (provider === 'udio') {
     model = "music-u";
+    let lType = promptData.isCustomLyrics ? "user" : "generate";
+    if (promptData.isInstrumental && settings.voice === 'Fără Voce') {
+        lType = "instrumental";
+    }
     payload = {
       model: model,
       task_type: "generate_music",
       input: {
         gpt_description_prompt: promptData.style,
         prompt: promptData.lyrics,
-        negative_tags: GLOBAL_NEGATIVE,
-        lyrics_type: promptData.isCustomLyrics ? "user" : "generate"
+        negative_tags: promptData.isInstrumental ? GLOBAL_NEGATIVE + ", vocals, singing, voices" : GLOBAL_NEGATIVE,
+        lyrics_type: lType
       }
     };
   }
