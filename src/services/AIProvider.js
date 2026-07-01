@@ -28,102 +28,71 @@ const TRANSLATIONS = {
   }
 };
 
-const GLOBAL_NEGATIVE = 'No jazz, no rock, no pop, no EDM, no trap, no hip-hop, no country.';
-const GLOBAL_PREFIX = `STRICT ROMANIAN ORIENTAL MUSIC ONLY.\nModern Romanian manele / Balkan oriental party style.\nRomanian lyrics only.\n${GLOBAL_NEGATIVE}\n`;
+const GLOBAL_NEGATIVE = 'No rock, no jazz, no classical, no country, no heavy metal, no acoustic indie.';
+const GLOBAL_PREFIX = `STRICT ROMANIAN ORIENTAL MUSIC ONLY. Modern Romanian manele / Balkan oriental party style. Romanian lyrics only.`;
 
 const sanitizeString = (str) => {
   if (!str) return "";
   return str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/[^\w\s.,-]/gi, ' ').substring(0, 119);
 };
 
-/**
- * Builds the exact prompt structure based on the provider and settings.
- */
 export const buildPrompt = (settings, provider = 'suno') => {
   const { genre, energy, tempo, instruments, voice, atmosphere, theme, speedMode } = settings;
   
   const mappedVoice = TRANSLATIONS.voice[voice] || voice;
   const mappedTempo = TRANSLATIONS.tempo[tempo] || tempo;
   
-  const instrumentList = instruments && instruments.length > 0 
+  const instrumentList = instruments && instruments.length > 0 && !instruments.includes('Auto')
     ? instruments.map(i => TRANSLATIONS.instruments[i] || i).join(', ')
-    : 'Standard band';
+    : '';
 
-  if (provider === 'udio') {
-    return `${GLOBAL_PREFIX}
-Generate ONLY modern Romanian ${genre?.toLowerCase() || ''}.
-Romanian lyrics only.
-${mappedVoice}.
-${mappedTempo}.
-High energy level (${energy}/100).
-Dominant instruments: ${instrumentList}.
-${atmosphere} atmosphere.
-Very catchy chorus.
-Theme:
-${theme}
-Do not end abruptly.
-Outro with fade out.`;
+  // Genre specific directives
+  let genreDirectives = '';
+  let genreTags = '';
+
+  if (genre === 'Tarabană & Bass') {
+    genreDirectives = "Dominant darbuka/tarabană rhythm, deep heavy bass, oriental keyboard riff, fast dance groove, viral balkan trap feel, repetitive catchy hook, Romanian party atmosphere.";
+    genreTags = "balkan trap, darbuka, oriental percussion, heavy bass, party";
+  } else if (genre === 'Manele de Club') {
+    genreDirectives = "Modern Romanian club manele, reggaeton-like energetic beat, deep bass, modern synthesizer, commercial pop-oriental fusion, club atmosphere.";
+    genreTags = "club manele, romanian pop, oriental synth, reggaeton beat, dance";
+  } else if (genre === 'Petrecere') {
+    genreDirectives = "Romanian traditional party music (petrecere), upbeat tempo, live accordion solos, violin, joyful and highly energetic rhythm.";
+    genreTags = "party music, accordion, violin, traditional pop, upbeat";
+  } else if (genre === 'Lăutărească') {
+    genreDirectives = "Authentic Romanian lăutărească music, live taraf feeling, acoustic instruments, violin, accordion, cimbalom (țambal), traditional acoustic rhythm.";
+    genreTags = "lautareasca, taraf, gypsy folk, live acoustic, cimbalom";
+  } else {
+    genreDirectives = `Romanian ${genre} style, balkan oriental pop.`;
+    genreTags = "balkan, oriental, pop";
   }
 
-  // SUNO FORMAT
+  const { promptModifier, negativeModifier } = analyzeFeedback();
+  const learningInjection = `${promptModifier} ${negativeModifier}`;
+
+  if (provider === 'udio') {
+    const udioPrompt = `${GLOBAL_PREFIX}
+${genreDirectives}
+Voice: ${mappedVoice}. Tempo: ${mappedTempo}.
+Energy level: ${energy}/100.
+${instrumentList ? `Instruments: ${instrumentList}.` : ''}
+Atmosphere: ${atmosphere}.
+Theme: ${theme}.
+${learningInjection}
+Make the chorus very catchy and memorable.
+Natural outro with fade out.`;
+    return udioPrompt;
+  }
+
   if (provider === 'suno') {
+    let finalTags = `${genreTags}, ${mappedVoice}, ${mappedTempo}, energy ${energy}, ${atmosphere} atmosphere`;
+    if (instrumentList) finalTags += `, ${instrumentList}`;
+
+    let sunoPrompt = `${GLOBAL_PREFIX}\n${genreDirectives}\nTheme: ${theme}.\n${learningInjection} Natural outro, fade out.`;
     
-    const { promptModifier, negativeModifier } = analyzeFeedback();
-    const learningInjection = `${promptModifier} ${negativeModifier}`;
-
-    // Preset Prompts
-    if (genre === 'Tarabană & Bass TikTok') {
-      return {
-        prompt: `STRICT ROMANIAN ORIENTAL MUSIC ONLY. TikTok Romanian club manele instrumental vibe, dominant darbuka/tarabană rhythm, very deep bass, oriental keyboard riff, fast dance groove, repetitive catchy hook, party atmosphere, Romanian lyrics only. No jazz, no rock, no pop, no EDM, no trap, no hip-hop. ${learningInjection} Natural outro, fade out.`,
-        tags: 'tiktok, club manele, tarabana, bass, oriental'
-      };
-    }
-
-    if (genre === 'Tarabană & Bass') {
-      return {
-        prompt: `${GLOBAL_PREFIX}\nDominant darbuka/tarabană rhythm, deep bass, oriental keyboard riff, fast dance groove, repetitive catchy hook, Romanian party atmosphere. Theme: ${theme}. ${learningInjection} Natural outro, fade out.`,
-        tags: 'tarabana, bass, oriental, party'
-      };
-    }
-
-    if (genre === 'Lăutărească / Țigănească') {
-      return {
-        prompt: `${GLOBAL_PREFIX}\nAuthentic Romanian lăutărească party music, live taraf feeling, violin, accordion, cimbalom, double bass, acoustic guitar, traditional rhythm. Theme: ${theme}. ${learningInjection} Natural outro, fade out.`,
-        tags: 'lautareasca, taraf, gypsy, live'
-      };
-    }
-
-    // Default Fallback
-    let tags = [
-      `Romanian ${genre?.toLowerCase() || ''}`,
-      ...instruments.map(i => TRANSLATIONS.instruments[i] || i),
-      mappedVoice,
-      mappedTempo,
-      `energy ${energy}`,
-      `${atmosphere} atmosphere`
-    ].filter(Boolean).join(', ');
-
-    let promptText = '';
-    if (speedMode === 'Rapid') {
-      tags += ', catchy chorus';
-      promptText = `${GLOBAL_PREFIX}\n${tags}. Theme: ${theme}.`;
-    } else {
-      tags += ', catchy repetitive chorus';
-      promptText = `${GLOBAL_PREFIX}\n${tags}, Romanian lyrics only. Theme: ${theme}. Natural outro, fade out.`;
-    }
-
-    // Duplicat sters
-    
-    // Injectăm smart learning tuning
-    if (promptModifier || negativeModifier) {
-      if (promptText) {
-        promptText = promptText.replace('Natural outro', `${promptModifier} ${negativeModifier} Natural outro`);
-      }
-    }
-
     return {
-      prompt: promptText,
-      tags: tags
+      prompt: sunoPrompt,
+      tags: finalTags
     };
   }
 
