@@ -19,10 +19,10 @@ const TRANSLATIONS = {
     'Italiană': 'Italian'
   },
   instruments: {
-    'Tarabană': 'Darbuka (tarabană)',
-    'Acordeon': 'Accordion',
-    'Vioară': 'Violin',
-    'Clape': 'Keyboard/Synth',
+    'Tarabană': 'dominant darbuka/tarabană',
+    'Acordeon': 'accordion accents',
+    'Vioară': 'violin solo',
+    'Clape': 'oriental keyboard',
     'Saxofon': 'Saxophone',
     'Țambal': 'Cimbalom',
     'Chitară acustică': 'Acoustic guitar'
@@ -74,22 +74,18 @@ Outro with fade out.`;
 
   // SUNO FORMAT
   if (provider === 'suno') {
-    // For Suno, tags drive the musical style, prompt drives the lyrics/theme
     const tags = [
-      `${mappedLanguage} ${genre}`,
-      subgenre,
+      `Modern ${mappedLanguage} ${subgenre?.toLowerCase() || ''} ${genre?.toLowerCase() || ''}`,
+      ...instruments.map(i => TRANSLATIONS.instruments[i] || i),
       mappedVoice,
       mappedTempo,
       `energy ${energy}`,
-      ...instruments.map(i => TRANSLATIONS.instruments[i] || i),
-      `${atmosphere} vibe`
+      `${atmosphere} atmosphere`,
+      'catchy repetitive chorus'
     ].filter(Boolean).join(', ');
 
-    const promptText = `Generate lyrics in ${mappedLanguage} language.
-Theme: ${theme}.
-Atmosphere: ${atmosphere}.
-Structure: [Intro], [Verse 1], [Chorus], [Verse 2], [Chorus], [Instrumental Solo], [Chorus], [Outro], [Fade Out].
-Rules: ${negative}`;
+    // The user requested a highly compressed, clear prompt
+    const promptText = `${tags}, ${mappedLanguage} lyrics only. Theme: ${theme}. ${negative} Natural outro, fade out.`;
 
     return {
       prompt: promptText,

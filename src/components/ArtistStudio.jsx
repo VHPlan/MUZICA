@@ -13,14 +13,14 @@ const SUBGENRES_MAP = {
   'House': ['Deep House', 'Tech House', 'Electro']
 };
 
-const INSTRUMENTS = ['Tarabană', 'Acordeon', 'Vioară', 'Clape', 'Saxofon', 'Țambal', 'Chitară acustică'];
+const INSTRUMENTS = ['Tarabană', 'Acordeon', 'Vioară', 'Clape', 'Saxofon', 'Țambal', 'Chitară acustică', 'Bass Puternic'];
 const TEMPOS = ['Lent', 'Mediu', 'Rapid'];
 const VOICES = ['Masculină', 'Feminină', 'Duo'];
 const ATMOSPHERES = ['Petrecere', 'Club', 'Nuntă', 'Romantică', 'Tristă', 'Motivațională'];
 const LANGUAGES = ['Română', 'Engleză', 'Spaniolă', 'Italiană'];
 
 const PRESETS = [
-  { id: 'club_manele', icon: '🔥', label: 'Club Manele', settings: { genre: 'Manele', subgenre: 'Club', instruments: ['Tarabană', 'Clape', 'Saxofon'], tempo: 'Rapid', energy: 95, voice: 'Masculină', atmosphere: 'Club' } },
+  { id: 'club_manele', icon: '🔥', label: 'Club Manele', settings: { genre: 'Manele', subgenre: 'Club', instruments: ['Tarabană', 'Clape', 'Acordeon', 'Vioară', 'Bass Puternic'], tempo: 'Rapid', energy: 95, voice: 'Masculină', atmosphere: 'Petrecere' } },
   { id: 'nunta', icon: '💍', label: 'Nuntă', settings: { genre: 'Manele', subgenre: 'De nuntă', instruments: ['Acordeon', 'Vioară', 'Țambal'], tempo: 'Mediu', energy: 80, voice: 'Duo', atmosphere: 'Nuntă' } },
   { id: 'lautareasca', icon: '🎻', label: 'Lăutărească', settings: { genre: 'Lăutărească', subgenre: 'Tradițională', instruments: ['Vioară', 'Acordeon', 'Țambal'], tempo: 'Mediu', energy: 70, voice: 'Masculină', atmosphere: 'Petrecere' } },
   { id: 'dragoste', icon: '❤️', label: 'Dragoste', settings: { genre: 'Manele', subgenre: 'Romantică', instruments: ['Vioară', 'Chitară acustică'], tempo: 'Lent', energy: 50, voice: 'Feminină', atmosphere: 'Romantică' } },
@@ -220,7 +220,15 @@ export default function ArtistStudio() {
             <button className="btn-secondary" style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}><Heart size={20} /> Salvează</button>
           </div>
           
-          <button className="btn-secondary" style={{ width: '100%', marginTop: '30px', border: 'none', background: 'transparent', textDecoration: 'underline' }} onClick={() => { setStep(1); setAudioUrl(''); }}>Creează un alt hit</button>
+          <button 
+            className="btn-primary glow-btn" 
+            style={{ width: '100%', marginTop: '20px', padding: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }} 
+            onClick={() => { setStep(5); setAudioUrl(''); handleGenerate(); }}
+          >
+            <Zap size={20} /> Generează din nou cu aceleași setări
+          </button>
+
+          <button className="btn-secondary" style={{ width: '100%', marginTop: '16px', border: 'none', background: 'transparent', textDecoration: 'underline' }} onClick={() => { setStep(1); setAudioUrl(''); }}>Creează un alt hit (de la zero)</button>
         </div>
       </div>
     );
