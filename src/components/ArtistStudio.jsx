@@ -178,23 +178,23 @@ export default function ArtistStudio() {
     const langTag = language !== 'Română' ? `${language} only.` : 'Romanian only.';
     
     // Exact requested Final Prompt Essay format
-    const essayPrompt = \`STYLE:
-\${genreData.style}
+    const essayPrompt = `STYLE:
+${genreData.style}
 
 NEGATIVE STYLE:
-\${genreData.negative}
+${genreData.negative}
 
 LYRICS LANGUAGE:
-\${langTag}
+${langTag}
 
 THEME:
-\${prompt} (Please interpret this theme in English but sing in \${language})
+${prompt} (Please interpret this theme in English but sing in ${language})
 
 IMPORTANT:
 The selected genre is mandatory. Do not change the genre. Do not generate rock unless Rock is selected. The user prompt cannot override the selected genre.
 
 STRUCTURE:
-Intro, verse, chorus, verse, chorus, instrumental solo, final chorus repeated twice, 15-20 second outro, smooth fade-out. Do not end abruptly.\`;
+Intro, verse, chorus, verse, chorus, instrumental solo, final chorus repeated twice, 15-20 second outro, smooth fade-out. Do not end abruptly.`;
 
     // Warn if PiAPI might ignore separate custom fields (developer console as requested)
     console.warn("Provider does not support strict genre control. Results may ignore selected genre if essay overrides tags.");
@@ -203,8 +203,8 @@ Intro, verse, chorus, verse, chorus, instrumental solo, final chorus repeated tw
       model: "music-u",
       task_type: "generate_music",
       input: {
-        prompt: \`\${genreData.style}, \${voice} vocal, mood \${mood}, intro, verse, chorus, instrumental solo, outro, fade out\`, // Manual tags parameter
-        negative_tags: \`\${genreData.negative}, abrupt ending, sudden stop\`, // Strict negative parameter
+        prompt: `${genreData.style}, ${voice} vocal, mood ${mood}, intro, verse, chorus, instrumental solo, outro, fade out`, // Manual tags parameter
+        negative_tags: `${genreData.negative}, abrupt ending, sudden stop`, // Strict negative parameter
         gpt_description_prompt: essayPrompt, // The essay structure the user strictly requested
         lyrics_type: "generate"
       }
