@@ -17,8 +17,21 @@ export default function ArtistStudio() {
       const data = rawData.data || rawData; // PiAPI wraps in "data" object
 
       if (data.status === 'completed') {
-        const res = data.result || data.output || {};
-        const songUrl = data.audio_url || res.audio_url || (data.clips && data.clips[0]?.audio_url) || (res.clips && res.clips[0]?.audio_url) || data.url || res.url;
+        // Cautare recursiva pentru orice URL valid de media (audio/video) returnat de PiAPI
+        const findMediaUrl = (obj) => {
+          if (typeof obj === 'string' && obj.startsWith('http') && (obj.includes('.mp3') || obj.includes('.mp4') || obj.includes('.wav'))) return obj;
+          if (typeof obj !== 'object' || obj === null) return null;
+          for (let key in obj) {
+            if (typeof obj[key] === 'string' && obj[key].startsWith('http') && (key.includes('url') || key.includes('link') || key.includes('audio') || key.includes('video'))) {
+              return obj[key];
+            }
+            const res = findMediaUrl(obj[key]);
+            if (res) return res;
+          }
+          return null;
+        };
+
+        const songUrl = findMediaUrl(data);
         
         if (songUrl) {
           setAudioUrl(songUrl);
