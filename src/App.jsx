@@ -6,17 +6,40 @@ import { Music, Settings as SettingsIcon, Home, Headphones, Trophy, Trash2, Down
 import { generateMusicTask } from './services/AIProvider';
 
 function HeroSection({ onStart }) {
+  const PRESETS = [
+    { id: 'tiktok_club', icon: '🔥', label: 'Tarabană & Bass TikTok' },
+    { id: 'manele_club', icon: '💸', label: 'Manele de Club' },
+    { id: 'nunta', icon: '💍', label: 'Nuntă Românească' },
+    { id: 'lautareasca', icon: '🎻', label: 'Lăutărească Live' }
+  ];
+
   return (
-    <div style={{ textAlign: 'center', padding: '100px 20px', minHeight: '60vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-      <h1 style={{ fontSize: '3.5rem', fontWeight: 700, marginBottom: '24px', background: 'linear-gradient(to right, #8B5CF6, #06B6D4)', WebkitBackgroundClip: 'text', color: 'transparent' }}>
-        🎵 Studio AI pentru Manele Românești
+    <div style={{ textAlign: 'center', padding: '80px 20px', minHeight: '70vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', animation: 'fadeIn 0.6s ease-out' }}>
+      <div style={{ padding: '8px 16px', background: 'rgba(139, 92, 246, 0.1)', border: '1px solid rgba(139, 92, 246, 0.2)', borderRadius: '100px', color: 'var(--primary)', fontWeight: 600, fontSize: '0.9rem', marginBottom: '32px', display: 'inline-block' }}>
+        ✨ V2.0 - Acum cu Smart Prompt Tuning
+      </div>
+      <h1 className="glow-text text-gradient" style={{ fontSize: '4.5rem', fontWeight: 800, margin: '0 0 24px 0', letterSpacing: '-0.02em', lineHeight: 1.1 }}>
+        Studio AI pentru<br/>Manele Românești
       </h1>
-      <p style={{ fontSize: '1.25rem', color: 'var(--text-muted)', marginBottom: '40px', maxWidth: '600px', lineHeight: 1.6 }}>
-        Platforma ta premium dedicată exclusiv producției de manele, muzică lăutărească și instrumentale orientale de tarabană și bass.
+      <p style={{ fontSize: '1.25rem', color: 'var(--text-muted)', marginBottom: '48px', maxWidth: '650px', lineHeight: 1.6 }}>
+        Generează manele, lăutărească și instrumentale orientale cu tarabană și bass, folosind cel mai avansat motor AI.
       </p>
-      <button onClick={onStart} className="btn-primary glow-btn" style={{ fontSize: '1.2rem', padding: '16px 36px' }}>
-        🚀 Începe Magia
+      
+      <button onClick={onStart} className="btn-primary" style={{ fontSize: '1.2rem', padding: '18px 48px', display: 'flex', alignItems: 'center', gap: '12px', margin: '0 auto 60px auto', borderRadius: '16px' }}>
+        <Zap size={24} /> Creează un hit
       </button>
+
+      <div style={{ width: '100%', maxWidth: '900px' }}>
+        <h3 style={{ color: 'var(--text-muted)', marginBottom: '24px', fontSize: '1rem', fontWeight: 500, letterSpacing: '0.05em', textTransform: 'uppercase' }}>Preseturi Populare</h3>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px' }}>
+          {PRESETS.map(preset => (
+            <div key={preset.id} onClick={onStart} style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-glass)', borderRadius: '20px', padding: '24px', cursor: 'pointer', transition: 'all 0.3s', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '16px' }} onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.08)'; e.currentTarget.style.transform = 'translateY(-5px)'; }} onMouseLeave={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.03)'; e.currentTarget.style.transform = 'translateY(0)'; }}>
+              <div style={{ fontSize: '2.5rem', filter: 'drop-shadow(0 4px 10px rgba(0,0,0,0.5))' }}>{preset.icon}</div>
+              <div style={{ fontWeight: 600, color: 'var(--text-main)' }}>{preset.label}</div>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
@@ -270,29 +293,35 @@ export default function App() {
 
   return (
     <div>
-      <nav style={{ background: 'rgba(22, 27, 45, 0.8)', backdropFilter: 'blur(12px)', borderBottom: '1px solid var(--border-glass)', padding: '16px 32px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, zIndex: 100 }}>
-        <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--primary)', display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }} onClick={() => setActiveTab('home')}>
-          <Music size={28} /> Muzica AI
+      <nav style={{ background: 'rgba(10, 10, 10, 0.7)', backdropFilter: 'blur(20px)', borderBottom: '1px solid rgba(255,255,255,0.05)', padding: '16px 40px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky', top: 0, zIndex: 100 }}>
+        <div style={{ fontSize: '1.4rem', fontWeight: 800, color: '#fff', display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer', letterSpacing: '-0.03em' }} onClick={() => setActiveTab('home')}>
+          <div style={{ background: 'linear-gradient(135deg, var(--primary), var(--accent))', padding: '8px', borderRadius: '10px', display: 'flex' }}>
+            <Music size={20} color="#fff" />
+          </div>
+          Muzica AI
         </div>
-        <div style={{ display: 'flex', gap: '8px' }}>
+        <div style={{ display: 'flex', gap: '12px' }}>
           {tabs.map(tab => (
             <button 
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
               style={{
-                background: activeTab === tab.id ? 'rgba(139, 92, 246, 0.15)' : 'transparent',
-                color: activeTab === tab.id ? 'var(--primary)' : 'var(--text-muted)',
+                background: activeTab === tab.id ? 'rgba(255, 255, 255, 0.1)' : 'transparent',
+                color: activeTab === tab.id ? '#fff' : 'var(--text-muted)',
                 border: 'none',
-                padding: '10px 16px',
-                borderRadius: '8px',
+                padding: '10px 18px',
+                borderRadius: '12px',
                 cursor: 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '8px',
-                fontFamily: 'Poppins, sans-serif',
+                fontFamily: 'inherit',
                 fontWeight: 500,
-                transition: 'all 0.2s'
+                transition: 'all 0.2s',
+                fontSize: '0.95rem'
               }}
+              onMouseEnter={(e) => { if(activeTab !== tab.id) e.currentTarget.style.color = '#fff' }}
+              onMouseLeave={(e) => { if(activeTab !== tab.id) e.currentTarget.style.color = 'var(--text-muted)' }}
             >
               <tab.icon size={18} /> {tab.label}
             </button>
