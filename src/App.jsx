@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Sparkles, Music, Library, Settings2, Play, Disc3 } from 'lucide-react';
 import CreationWizard from './components/CreationWizard';
 import GenerationScreen from './components/GenerationScreen';
-import { generateMusicTask } from './services/AIProvider';
+import { generateMusicTask, checkTaskStatus } from './services/AIProvider';
 import './App.css';
 
 export default function App() {
@@ -17,9 +17,11 @@ export default function App() {
   }, []);
 
   const saveToLibrary = (track) => {
-    const updated = [track, ...library];
-    setLibrary(updated);
-    localStorage.setItem('ai_music_library', JSON.stringify(updated));
+    setLibrary(prev => {
+      const updated = [track, ...prev];
+      localStorage.setItem('ai_music_library', JSON.stringify(updated));
+      return updated;
+    });
   };
 
   const startGlobalGeneration = async (settings, provider, apiKey) => {
@@ -49,32 +51,38 @@ export default function App() {
   };
 
   useEffect(() => {
-    const interval = setInterval(() => {
-      setActiveTasks(prev => {
-        let changed = false;
-        const updated = prev.map(task => {
-          if (task.status === 'error' || task.status === 'completed') return task;
-          changed = true;
-          
-          let nextProgress = task.progress + (Math.random() * 2 + 1);
-          if (nextProgress >= 100) {
-            nextProgress = 100;
+    const pollTasks = async () => {
+      const pending = activeTasks.filter(t => t.status === 'pending' && t.externalId);
+      for (let task of pending) {
+        try {
+          const res = await checkTaskStatus(task.externalId, task.apiKey);
+          const data = res.data || res;
+          if (data.status === 'completed' || data.status === 'success') {
             const finalTrack = {
               id: task.id,
               title: `Hit - ${task.settings.genre}`,
               genre: task.settings.genre,
               date: new Date().toLocaleDateString(),
             };
-            setTimeout(() => saveToLibrary(finalTrack), 0);
-            return { ...task, progress: 100, status: 'completed' };
+            saveToLibrary(finalTrack);
+            setActiveTasks(prev => prev.map(t => t.id === task.id ? { ...t, progress: 100, status: 'completed' } : t));
+          } else if (data.status === 'failed' || data.status === 'error') {
+            setActiveTasks(prev => prev.map(t => t.id === task.id ? { ...t, status: 'error', progress: 100, rawResponse: 'Eroare generare.' } : t));
+          } else {
+            // fake progress visual bump
+            let nextProgress = task.progress + (Math.random() * 2 + 1);
+            if (nextProgress > 95) nextProgress = 95;
+            setActiveTasks(prev => prev.map(t => t.id === task.id ? { ...t, progress: nextProgress } : t));
           }
-          return { ...task, progress: nextProgress };
-        });
-        return changed ? updated : prev;
-      });
-    }, 2000);
+        } catch (e) {
+          // ignore network temp errors during polling
+        }
+      }
+    };
+
+    const interval = setInterval(pollTasks, 3000);
     return () => clearInterval(interval);
-  }, [library]);
+  }, [activeTasks]);
 
   const activeTask = activeTasks.find(t => !t.isBackground) || null;
   const backgroundTasksCount = activeTasks.filter(t => t.isBackground && t.status === 'pending').length;

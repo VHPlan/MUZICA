@@ -194,3 +194,11 @@ export const generateMusicTask = async (settings, provider, apiKey) => {
     rawResponse: data
   };
 };
+
+export const checkTaskStatus = async (taskId, apiKey) => {
+  const response = await fetch(`https://api.piapi.ai/api/v1/task/${taskId}`, {
+    headers: { 'x-api-key': apiKey }
+  });
+  if (!response.ok) throw new Error('Eroare comunicare server.');
+  return await response.json();
+};
